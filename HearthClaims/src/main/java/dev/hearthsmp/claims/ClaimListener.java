@@ -30,16 +30,45 @@ public final class ClaimListener implements Listener {
 
         if (event.getAction().isLeftClick()) {
             selection[0] = event.getClickedBlock().getLocation();
+            showSelection(player);
             player.sendMessage(msg("selection-start")
                     .replace("{x}", String.valueOf(selection[0].getBlockX()))
                     .replace("{z}", String.valueOf(selection[0].getBlockZ())));
         } else if (event.getAction().isRightClick()) {
             selection[1] = event.getClickedBlock().getLocation();
+            showSelection(player);
             player.sendMessage(msg("selection-end")
                     .replace("{x}", String.valueOf(selection[1].getBlockX()))
                     .replace("{z}", String.valueOf(selection[1].getBlockZ())));
             tryCreate(player);
         }
+    }
+
+    private void showSelection(Player player) {
+        var selection = plugin.getClaimManager().getSelection(player.getUniqueId());
+        if (selection[0] == null) return;
+
+        var first = selection[0];
+        var second = selection[1] == null ? first : selection[1];
+        int minX = Math.min(first.getBlockX(), second.getBlockX());
+        int maxX = Math.max(first.getBlockX(), second.getBlockX());
+        int minZ = Math.min(first.getBlockZ(), second.getBlockZ());
+        int maxZ = Math.max(first.getBlockZ(), second.getBlockZ());
+        double y = player.getLocation().getY() + 1.0;
+        int spacing = Math.max(1, plugin.getConfig().getInt("visualization.spacing", 3));
+
+        for (int x = minX; x <= maxX; x += spacing) {
+            particle(player, x + 0.5, y, minZ + 0.5);
+            particle(player, x + 0.5, y, maxZ + 0.5);
+        }
+        for (int z = minZ; z <= maxZ; z += spacing) {
+            particle(player, minX + 0.5, y, z + 0.5);
+            particle(player, maxX + 0.5, y, z + 0.5);
+        }
+    }
+
+    private void particle(Player player, double x, double y, double z) {
+        player.spawnParticle(org.bukkit.Particle.FLAME, x, y, z, 1, 0, 0, 0, 0);
     }
 
     private void tryCreate(Player player) {
