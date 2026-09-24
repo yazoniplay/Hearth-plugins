@@ -1,0 +1,10 @@
+server:
+  name: "Hearth SMP"
+  tagline: "Build something worth coming home to."
+
+ui:
+  primary-color: "#E58A4E"
+  cream-color: "#F2E2C4"
+  brown-color: "#6E4B35"
+  charcoal-color: "#211B17"
+  muted-color: "#9A8978"
