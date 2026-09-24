@@ -96,6 +96,21 @@ public final class ClaimManager {
                         && minZ <= c.getMaxZ() && maxZ >= c.getMinZ());
     }
 
+    public boolean overlaps(Claim ignored, String world, int minX, int maxX, int minZ, int maxZ) {
+        return claims.values().stream().anyMatch(c ->
+                c != ignored
+                        && c.getWorld().equals(world)
+                        && minX <= c.getMaxX() && maxX >= c.getMinX()
+                        && minZ <= c.getMaxZ() && maxZ >= c.getMinZ());
+    }
+
+    public boolean resize(Claim claim, int minX, int maxX, int minZ, int maxZ) {
+        if (overlaps(claim, claim.getWorld(), minX, maxX, minZ, maxZ)) return false;
+        claim.setBounds(minX, maxX, minZ, maxZ);
+        save();
+        return true;
+    }
+
     public Claim create(UUID owner, Location first, Location second) {
         Claim claim = new Claim(UUID.randomUUID(), owner, first, second);
         claims.put(claim.getId(), claim);
