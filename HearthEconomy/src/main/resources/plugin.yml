@@ -1,0 +1,22 @@
+name: HearthEconomy
+version: 0.1.0-SNAPSHOT
+main: dev.hearthsmp.economy.HearthEconomyPlugin
+api-version: '1.21'
+author: Hearth SMP
+description: Hearth SMP economy and player wallet system.
+depend: [HearthCore]
+
+commands:
+  economy:
+    description: Open the Hearth economy.
+    usage: /economy
+    aliases: [eco, balance, bal]
+  pay:
+    description: Send Hearth money to another player.
+    usage: /pay <player> <amount>
+
+permissions:
+  hearth.economy.use:
+    default: true
+  hearth.economy.admin:
+    default: op
