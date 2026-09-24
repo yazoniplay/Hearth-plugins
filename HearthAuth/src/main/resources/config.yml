@@ -1,0 +1,29 @@
+auth:
+  enabled: true
+  password:
+    minimum-length: 6
+    maximum-length: 64
+  session:
+    timeout-seconds: 300
+
+security:
+  iterations: 210000
+
+messages:
+  prefix: "&6&l🔥 Hearth &8»"
+  register-required: "&eYou need to register first: &f/register <password> <password>"
+  login-required: "&ePlease log in: &f/login <password>"
+  registered: "&aAccount registered successfully. You are now logged in."
+  logged-in: "&aYou are now logged in."
+  logged-out: "&eYou have been logged out."
+  wrong-password: "&cIncorrect password."
+  already-registered: "&cThat player already has a registered account."
+  not-registered: "&cYou do not have a registered account."
+  passwords-differ: "&cThe passwords do not match."
+  password-short: "&cYour password must be at least {minimum} characters."
+  password-long: "&cYour password is too long."
+  already-logged-in: "&eYou are already logged in."
+  timed-out: "&cYou took too long to log in."
+  usage-register: "&7Usage: &f/register <password> <password>"
+  usage-login: "&7Usage: &f/login <password>"
+  usage-logout: "&7Usage: &f/logout"
