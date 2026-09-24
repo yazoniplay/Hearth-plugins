@@ -1,6 +1,7 @@
 rootProject.name = 'Hearth-plugins'
 
 include 'HearthCore'
+include 'HearthAuth'
 include 'HearthClaims'
 include 'HearthEconomy'
 include 'HearthHomes'
