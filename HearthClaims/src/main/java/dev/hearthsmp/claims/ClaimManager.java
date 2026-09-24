@@ -1,6 +1,7 @@
 package dev.hearthsmp.claims;
 
 import org.bukkit.Location;
+import org.bukkit.entity.Player;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 
@@ -105,6 +106,20 @@ public final class ClaimManager {
     public void delete(Claim claim) {
         claims.remove(claim.getId());
         save();
+    }
+
+    public int claimBlockLimit(Player player) {
+        int highest = plugin.getConfig().getInt("ranks.default.claim-blocks", 500);
+        ConfigurationSection ranks = plugin.getConfig().getConfigurationSection("ranks");
+        if (ranks != null) {
+            for (String rank : ranks.getKeys(false)) {
+                String permission = ranks.getString(rank + ".permission");
+                if (permission != null && player.hasPermission(permission)) {
+                    highest = Math.max(highest, ranks.getInt(rank + ".claim-blocks", highest));
+                }
+            }
+        }
+        return highest;
     }
 
     public Map<UUID, Location[]> getSelections() { return selections; }
