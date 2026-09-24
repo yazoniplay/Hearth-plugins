@@ -1,6 +1,16 @@
+# HearthCore configuration
+# Edit this file to customize Hearth without changing the plugin code.
+# After changing values, use /hearth reload when supported.
+
 server:
   name: "Hearth SMP"
   tagline: "Build something worth coming home to."
+
+messages:
+  prefix: "&6&l🔥 Hearth &8»"
+  no-permission: "&cYou do not have permission to do that."
+  config-reloaded: "&aHearthCore configuration reloaded."
+  player-only: "&cThis command can only be used by a player."
 
 ui:
   primary-color: "#E58A4E"
@@ -8,3 +18,22 @@ ui:
   brown-color: "#6E4B35"
   charcoal-color: "#211B17"
   muted-color: "#9A8978"
+
+  menu:
+    rows: 6
+    filler-material: "BROWN_STAINED_GLASS_PANE"
+    back-material: "ARROW"
+    close-material: "BARRIER"
+
+player-data:
+  enabled: true
+  autosave-seconds: 60
+
+database:
+  type: "sqlite"
+  file: "hearth.db"
+
+debug:
+  enabled: false
+  log-ui-actions: false
+  log-player-data: false
