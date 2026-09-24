@@ -1,0 +1,26 @@
+name: HearthAuth
+version: 0.1.0-SNAPSHOT
+main: dev.hearthsmp.auth.HearthAuthPlugin
+api-version: '1.21'
+author: Hearth SMP
+description: Secure login and registration for Hearth SMP.
+depend: [HearthCore]
+
+commands:
+  register:
+    description: Register your Hearth account.
+    usage: /register <password> <password>
+  login:
+    description: Log into your Hearth account.
+    usage: /login <password>
+  logout:
+    description: Log out of your Hearth account.
+    usage: /logout
+
+permissions:
+  hearth.auth.use:
+    description: Allows HearthAuth commands.
+    default: true
+  hearth.auth.admin:
+    description: Allows HearthAuth administration.
+    default: op
