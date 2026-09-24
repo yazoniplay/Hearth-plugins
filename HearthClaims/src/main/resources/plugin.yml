@@ -11,6 +11,12 @@ commands:
     description: Get the Hearth claim shovel and manage your claim selection.
     usage: /claim
     aliases: [claims]
+  claims:
+    description: View your claim-block balance and claim count.
+    usage: /claims
+  claiminfo:
+    description: View information about the claim you are standing in.
+    usage: /claiminfo
   abandonclaim:
     description: Abandon the claim you are standing in.
     usage: /abandonclaim
