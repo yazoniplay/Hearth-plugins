@@ -1,0 +1,19 @@
+economy:
+  starting-balance: 100.0
+  currency-symbol: "$"
+  currency-name: "Hearth Coins"
+  decimals: 2
+
+gui:
+  title: "&8🔥 Hearth Economy"
+  rows: 3
+
+messages:
+  prefix: "&6&l🔥 Hearth &8»"
+  balance: "&7Balance: &f{balance}"
+  paid: "&aYou sent &f{amount}&a to &f{player}&a."
+  received: "&aYou received &f{amount}&a from &f{player}&a."
+  invalid-amount: "&cEnter a valid positive amount."
+  not-enough: "&cYou do not have enough money."
+  cannot-pay-self: "&cYou cannot pay yourself."
+  player-not-found: "&cThat player could not be found."
