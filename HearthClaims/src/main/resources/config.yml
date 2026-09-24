@@ -7,6 +7,8 @@ claims:
   tool-material: "GOLDEN_SHOVEL"
   minimum-size: 25
   maximum-claims-per-player: 10
+  expansion-enabled: true
+  maximum-expansion-blocks: 10000
 
 ranks:
   default:
@@ -33,6 +35,13 @@ messages:
   claim-created: "&aClaim created! &7Size: &f{blocks} blocks."
   claim-too-small: "&cThat claim is too small. Minimum: &f{minimum}&c blocks."
   claim-limit: "&cYou do not have enough claim blocks."
+  expansion-disabled: "&cClaim expansion is disabled."
+  expansion-usage: "&7Usage: &f/claimexpand <north|south|east|west> <blocks>"
+  expansion-invalid: "&cExpansion amount must be a whole number."
+  expansion-too-large: "&cThat expansion is too large. Maximum: &f{maximum}&c blocks."
+  expansion-overlap: "&cThat expansion would overlap another claim."
+  expansion-success: "&aClaim updated! &7New size: &f{blocks} blocks."
+  expansion-not-owner: "&cYou must own this claim to resize it."
   too-many-claims: "&cYou have reached your maximum number of claims."
   not-owner: "&cYou do not own this claim."
   claim-abandoned: "&aClaim abandoned."
