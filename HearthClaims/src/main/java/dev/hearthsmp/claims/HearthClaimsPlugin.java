@@ -26,6 +26,9 @@ public final class HearthClaimsPlugin extends JavaPlugin {
         getCommand("abandonclaim").setExecutor(new AbandonClaimCommand(this));
         getCommand("claims").setExecutor(new ClaimsCommand(this));
         getCommand("claiminfo").setExecutor(new ClaimInfoCommand(this));
+        ClaimExpandCommand expand = new ClaimExpandCommand(this);
+        getCommand("claimexpand").setExecutor(expand);
+        getCommand("claimexpand").setTabCompleter(expand);
 
         getLogger().info("HearthClaims is protecting the Hearth.");
     }
