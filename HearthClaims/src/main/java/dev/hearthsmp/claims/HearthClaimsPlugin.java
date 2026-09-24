@@ -29,6 +29,8 @@ public final class HearthClaimsPlugin extends JavaPlugin {
         ClaimExpandCommand expand = new ClaimExpandCommand(this);
         getCommand("claimexpand").setExecutor(expand);
         getCommand("claimexpand").setTabCompleter(expand);
+        ClaimMenuCommand menu = new ClaimMenuCommand(this);
+        getCommand("claimmenu").setExecutor(menu);
 
         getLogger().info("HearthClaims is protecting the Hearth.");
     }
