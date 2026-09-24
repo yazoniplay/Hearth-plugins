@@ -1,0 +1,42 @@
+# HearthClaims configuration
+# Claim size is measured as X * Z surface blocks, like GriefPrevention.
+# The claim is protected vertically from the bottom of the world to the top.
+
+claims:
+  enabled: true
+  tool-material: "GOLDEN_SHOVEL"
+  minimum-size: 25
+  maximum-claims-per-player: 10
+
+ranks:
+  default:
+    permission: "hearth.claims.rank.default"
+    claim-blocks: 500
+
+  member:
+    permission: "hearth.claims.rank.member"
+    claim-blocks: 2500
+
+  vip:
+    permission: "hearth.claims.rank.vip"
+    claim-blocks: 10000
+
+  premium:
+    permission: "hearth.claims.rank.premium"
+    claim-blocks: 25000
+
+messages:
+  prefix: "&6&l🔥 Hearth &8»"
+  shovel-given: "&aYou received the Hearth claim shovel."
+  selection-start: "&eFirst corner selected: &f{x}, {z}"
+  selection-end: "&eSecond corner selected: &f{x}, {z}"
+  claim-created: "&aClaim created! &7Size: &f{blocks} blocks."
+  claim-too-small: "&cThat claim is too small. Minimum: &f{minimum}&c blocks."
+  claim-limit: "&cYou do not have enough claim blocks."
+  too-many-claims: "&cYou have reached your maximum number of claims."
+  not-owner: "&cYou do not own this claim."
+  claim-abandoned: "&aClaim abandoned."
+  trusted: "&a{player} can now build in your claim."
+  untrusted: "&e{player} is no longer trusted."
+  no-claim: "&cYou are not standing inside one of your claims."
+  protected: "&cThis land is claimed by &f{owner}&c."
