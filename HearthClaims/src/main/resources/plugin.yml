@@ -10,7 +10,6 @@ commands:
   claim:
     description: Get the Hearth claim shovel and manage your claim selection.
     usage: /claim
-    aliases: [claims]
   claims:
     description: View your claim-block balance and claim count.
     usage: /claims
