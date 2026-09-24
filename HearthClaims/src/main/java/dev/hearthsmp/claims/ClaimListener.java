@@ -17,6 +17,7 @@ public final class ClaimListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onInteract(PlayerInteractEvent event) {
         if (event.getHand() != EquipmentSlot.HAND || event.getClickedBlock() == null) return;
+
         Material tool = Material.matchMaterial(plugin.getConfig().getString("claims.tool-material", "GOLDEN_SHOVEL"));
         if (tool == null) tool = Material.GOLDEN_SHOVEL;
         if (event.getItem() == null || event.getItem().getType() != tool) return;
@@ -47,6 +48,7 @@ public final class ClaimListener implements Listener {
 
         var first = selection[0];
         var second = selection[1];
+
         if (!first.getWorld().equals(second.getWorld())) {
             player.sendMessage(ChatColor.RED + "Both corners must be in the same world.");
             return;
@@ -54,17 +56,20 @@ public final class ClaimListener implements Listener {
 
         int blocks = (Math.abs(first.getBlockX() - second.getBlockX()) + 1)
                 * (Math.abs(first.getBlockZ() - second.getBlockZ()) + 1);
-        int minimum = plugin.getConfig().getInt("claims.minimum-size", 25);
 
+        int minimum = plugin.getConfig().getInt("claims.minimum-size", 25);
         if (blocks < minimum) {
             player.sendMessage(msg("claim-too-small").replace("{minimum}", String.valueOf(minimum)));
             return;
         }
 
         int limit = claimBlockLimit(player);
-        int used = plugin.getClaimManager().getOwned(player.getUniqueId()).stream().mapToInt(Claim::getBlocks).sum();
+        int used = plugin.getClaimManager().getOwned(player.getUniqueId())
+                .stream().mapToInt(Claim::getBlocks).sum();
+
         if (used + blocks > limit) {
             player.sendMessage(msg("claim-limit"));
+            player.sendMessage(ChatColor.GRAY + "Used: " + used + " / " + limit + " claim blocks.");
             return;
         }
 
@@ -81,12 +86,15 @@ public final class ClaimListener implements Listener {
 
         plugin.getClaimManager().create(player.getUniqueId(), first, second);
         plugin.getClaimManager().clearSelection(player.getUniqueId());
+
         player.sendMessage(msg("claim-created").replace("{blocks}", String.valueOf(blocks)));
+        player.sendMessage(ChatColor.GRAY + "Claim blocks remaining: " + (limit - used - blocks) + " / " + limit);
     }
 
     private int claimBlockLimit(Player player) {
         int highest = plugin.getConfig().getInt("ranks.default.claim-blocks", 500);
         var ranks = plugin.getConfig().getConfigurationSection("ranks");
+
         if (ranks != null) {
             for (String rank : ranks.getKeys(false)) {
                 String permission = ranks.getString(rank + ".permission");
@@ -104,23 +112,27 @@ public final class ClaimListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBreak(BlockBreakEvent event) {
-        protect(event.getPlayer(), event.getBlock());
-        if (event.isCancelled()) return;
+        if (protect(event.getPlayer(), event.getBlock())) {
+            event.setCancelled(true);
+        }
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onPlace(BlockPlaceEvent event) {
-        protect(event.getPlayer(), event.getBlock());
-    }
-
-    private void protect(Player player, Block block) {
-        Claim claim = plugin.getClaimManager().getAt(block.getLocation());
-        if (claim != null && !claim.canBuild(player.getUniqueId())) {
-            player.sendMessage(msg("protected"));
-            player.sendActionBar(msg("protected"));
-            throw new ClaimProtectionException();
+        if (protect(event.getPlayer(), event.getBlock())) {
+            event.setCancelled(true);
         }
     }
 
-    private static final class ClaimProtectionException extends RuntimeException {}
+    private boolean protect(Player player, Block block) {
+        Claim claim = plugin.getClaimManager().getAt(block.getLocation());
+
+        if (claim != null && !claim.canBuild(player.getUniqueId())) {
+            String message = msg("protected");
+            player.sendMessage(message);
+            player.sendActionBar(message);
+            return true;
+        }
+        return false;
+    }
 }
