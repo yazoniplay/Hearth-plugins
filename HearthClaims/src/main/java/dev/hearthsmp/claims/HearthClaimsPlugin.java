@@ -13,6 +13,7 @@ public final class HearthClaimsPlugin extends JavaPlugin {
         claimManager.load();
 
         getServer().getPluginManager().registerEvents(new ClaimListener(this), this);
+        getServer().getPluginManager().registerEvents(new ClaimProtectionListener(this), this);
 
         ClaimCommand command = new ClaimCommand(this);
         getCommand("claim").setExecutor(command);
