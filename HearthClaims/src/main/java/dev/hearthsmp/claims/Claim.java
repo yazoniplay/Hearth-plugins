@@ -10,10 +10,10 @@ public final class Claim {
     private final UUID id;
     private final UUID owner;
     private final String world;
-    private final int minX;
-    private final int maxX;
-    private final int minZ;
-    private final int maxZ;
+    private int minX;
+    private int maxX;
+    private int minZ;
+    private int maxZ;
     private final Set<UUID> trusted = new HashSet<>();
 
     public Claim(UUID id, UUID owner, Location first, Location second) {
@@ -34,6 +34,13 @@ public final class Claim {
     public int getMinZ() { return minZ; }
     public int getMaxZ() { return maxZ; }
     public Set<UUID> getTrusted() { return trusted; }
+
+    public void setBounds(int minX, int maxX, int minZ, int maxZ) {
+        this.minX = Math.min(minX, maxX);
+        this.maxX = Math.max(minX, maxX);
+        this.minZ = Math.min(minZ, maxZ);
+        this.maxZ = Math.max(minZ, maxZ);
+    }
 
     public int getBlocks() {
         return (maxX - minX + 1) * (maxZ - minZ + 1);
