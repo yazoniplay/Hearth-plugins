@@ -44,7 +44,7 @@ public final class EconomyMenu {
         ItemStack filler = new ItemStack(Material.BROWN_STAINED_GLASS_PANE);
         ItemMeta fillerMeta = filler.getItemMeta();
         fillerMeta.setDisplayName(" ");
-        filler.setItemMeta(filler);
+        filler.setItemMeta(fillerMeta);
         for (int i = 0; i < inventory.getSize(); i++) {
             if (inventory.getItem(i) == null) inventory.setItem(i, filler);
         }
