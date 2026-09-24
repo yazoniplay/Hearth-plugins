@@ -42,6 +42,7 @@ messages:
   expansion-overlap: "&cThat expansion would overlap another claim."
   expansion-success: "&aClaim updated! &7New size: &f{blocks} blocks."
   expansion-not-owner: "&cYou must own this claim to resize it."
+  abandon-confirm: "&cType /abandonclaim to confirm abandoning your claim."
   too-many-claims: "&cYou have reached your maximum number of claims."
   not-owner: "&cYou do not own this claim."
   claim-abandoned: "&aClaim abandoned."
