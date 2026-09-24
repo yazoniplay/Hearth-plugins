@@ -4,3 +4,16 @@ main: dev.hearthsmp.core.HearthCorePlugin
 api-version: '1.21'
 author: Hearth SMP
 description: Core foundation for the Hearth SMP ecosystem.
+commands:
+  hearth:
+    description: HearthCore information and administration command.
+    usage: /hearth [info|reload]
+    permission: hearth.use
+    aliases: [hearthcore]
+permissions:
+  hearth.use:
+    description: Allows use of /hearth.
+    default: true
+  hearth.admin:
+    description: Allows HearthCore administration commands.
+    default: op
