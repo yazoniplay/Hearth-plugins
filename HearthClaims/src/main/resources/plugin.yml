@@ -19,6 +19,9 @@ commands:
   claimexpand:
     description: Expand or shrink your claim.
     usage: /claimexpand <north|south|east|west> <blocks>
+  claimmenu:
+    description: Open the Hearth claim management menu.
+    usage: /claimmenu
   abandonclaim:
     description: Abandon the claim you are standing in.
     usage: /abandonclaim
