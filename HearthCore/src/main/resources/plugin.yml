@@ -1,0 +1,6 @@
+name: HearthCore
+version: 0.1.0-SNAPSHOT
+main: dev.hearthsmp.core.HearthCorePlugin
+api-version: '1.21'
+author: Hearth SMP
+description: Core foundation for the Hearth SMP ecosystem.
