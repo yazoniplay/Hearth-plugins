@@ -1,0 +1,28 @@
+name: HearthClaims
+version: 0.1.0-SNAPSHOT
+main: dev.hearthsmp.claims.HearthClaimsPlugin
+api-version: '1.21'
+author: Hearth SMP
+description: GriefPrevention-style land claims for Hearth SMP.
+depend: [HearthCore]
+
+commands:
+  claim:
+    description: Get the Hearth claim shovel and manage your claim selection.
+    usage: /claim
+    aliases: [claims]
+  abandonclaim:
+    description: Abandon the claim you are standing in.
+    usage: /abandonclaim
+  trust:
+    description: Trust a player in your claim.
+    usage: /trust <player>
+  untrust:
+    description: Remove a trusted player from your claim.
+    usage: /untrust <player>
+
+permissions:
+  hearth.claims.use:
+    default: true
+  hearth.claims.admin:
+    default: op
