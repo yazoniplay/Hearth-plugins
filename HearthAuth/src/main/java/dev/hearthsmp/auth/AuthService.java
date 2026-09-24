@@ -1,12 +1,13 @@
 package dev.hearthsmp.auth;
 
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 
+import java.io.File;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
-import java.sql.*;
 import java.util.Base64;
 import java.util.HashSet;
 import java.util.Set;
@@ -15,42 +16,29 @@ import java.util.UUID;
 public final class AuthService {
     private final HearthAuthPlugin plugin;
     private final Set<UUID> authenticated = new HashSet<>();
-    private Connection connection;
+    private File file;
+    private YamlConfiguration data;
 
     public AuthService(HearthAuthPlugin plugin) {
         this.plugin = plugin;
     }
 
     public void start() {
-        try {
-            connection = DriverManager.getConnection(
-                    "jdbc:sqlite:" + new java.io.File(plugin.getDataFolder(), "auth.db").getAbsolutePath());
-            try (Statement statement = connection.createStatement()) {
-                statement.executeUpdate("""
-                        CREATE TABLE IF NOT EXISTS accounts (
-                            username TEXT PRIMARY KEY COLLATE NOCASE,
-                            uuid TEXT NOT NULL,
-                            salt TEXT NOT NULL,
-                            hash TEXT NOT NULL
-                        )
-                        """);
-        } catch (SQLException exception) {
-            throw new IllegalStateException("Could not open HearthAuth database.", exception);
+        if (!plugin.getDataFolder().exists() && !plugin.getDataFolder().mkdirs()) {
+            throw new IllegalStateException("Could not create HearthAuth data folder.");
         }
+
+        file = new File(plugin.getDataFolder(), "accounts.yml");
+        data = YamlConfiguration.loadConfiguration(file);
     }
 
     public void shutdown() {
         authenticated.clear();
-        if (connection != null) {
-            try {
-                connection.close();
-            } catch (SQLException ignored) {
-            }
-        }
+        save();
     }
 
     public boolean isRegistered(Player player) {
-        return findAccount(player.getName()) != null;
+        return data.contains(accountPath(player.getName()));
     }
 
     public boolean isAuthenticated(Player player) {
@@ -62,33 +50,36 @@ public final class AuthService {
 
         byte[] salt = new byte[16];
         new SecureRandom().nextBytes(salt);
-        String saltText = Base64.getEncoder().encodeToString(salt);
-        String hashText = hash(password, salt);
 
-        try (PreparedStatement statement = connection.prepareStatement(
-                "INSERT INTO accounts(username, uuid, salt, hash) VALUES (?, ?, ?, ?)")) {
-            statement.setString(1, player.getName());
-            statement.setString(2, player.getUniqueId().toString());
-            statement.setString(3, saltText);
-            statement.setString(4, hashText);
-            statement.executeUpdate();
-            authenticated.add(player.getUniqueId());
-            return true;
-        } catch (SQLException exception) {
-            plugin.getLogger().warning("Could not register account for " + player.getName() + ": " + exception.getMessage());
-            return false;
-        }
+        String path = accountPath(player.getName());
+        data.set(path + ".uuid", player.getUniqueId().toString());
+        data.set(path + ".salt", Base64.getEncoder().encodeToString(salt));
+        data.set(path + ".hash", hash(password, salt));
+        save();
+
+        authenticated.add(player.getUniqueId());
+        return true;
     }
 
     public boolean login(Player player, String password) {
-        Account account = findAccount(player.getName());
-        if (account == null) return false;
+        String path = accountPath(player.getName());
+        if (!data.contains(path)) return false;
 
-        byte[] salt = Base64.getDecoder().decode(account.salt());
-        String supplied = hash(password, salt);
+        String saltText = data.getString(path + ".salt");
+        String storedHash = data.getString(path + ".hash");
+        if (saltText == null || storedHash == null) return false;
+
+        byte[] salt;
+        try {
+            salt = Base64.getDecoder().decode(saltText);
+        } catch (IllegalArgumentException exception) {
+            return false;
+        }
+
+        String suppliedHash = hash(password, salt);
         if (!MessageDigest.isEqual(
-                supplied.getBytes(StandardCharsets.UTF_8),
-                account.hash().getBytes(StandardCharsets.UTF_8))) {
+                suppliedHash.getBytes(StandardCharsets.UTF_8),
+                storedHash.getBytes(StandardCharsets.UTF_8))) {
             return false;
         }
 
@@ -100,21 +91,16 @@ public final class AuthService {
         authenticated.remove(player.getUniqueId());
     }
 
-    private Account findAccount(String username) {
-        try (PreparedStatement statement = connection.prepareStatement(
-                "SELECT username, uuid, salt, hash FROM accounts WHERE username = ? COLLATE NOCASE")) {
-            statement.setString(1, username);
-            try (ResultSet result = statement.executeQuery()) {
-                if (!result.next()) return null;
-                return new Account(
-                        result.getString("username"),
-                        result.getString("uuid"),
-                        result.getString("salt"),
-                        result.getString("hash"));
-            }
-        } catch (SQLException exception) {
-            plugin.getLogger().warning("Could not read HearthAuth account: " + exception.getMessage());
-            return null;
+    private String accountPath(String username) {
+        return "accounts." + username.toLowerCase(java.util.Locale.ROOT);
+    }
+
+    private void save() {
+        if (data == null || file == null) return;
+        try {
+            data.save(file);
+        } catch (IOException exception) {
+            plugin.getLogger().warning("Could not save HearthAuth accounts: " + exception.getMessage());
         }
     }
 
@@ -133,6 +119,4 @@ public final class AuthService {
             throw new IllegalStateException("Could not hash HearthAuth password.", exception);
         }
     }
-
-    private record Account(String username, String uuid, String salt, String hash) {}
 }
