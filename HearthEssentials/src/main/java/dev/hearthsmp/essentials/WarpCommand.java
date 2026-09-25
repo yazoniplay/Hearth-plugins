@@ -101,6 +101,7 @@ public final class WarpCommand implements CommandExecutor, Listener {
             return;
         }
 
+        plugin.recordBack(player);
         player.teleport(location);
         player.sendMessage(ChatColor.GREEN + "Teleported to warp " + name + ".");
     }
