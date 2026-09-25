@@ -37,3 +37,14 @@ permissions:
     default: true
   hearth.essentials.admin:
     default: op
+  warp:
+    description: Open the Hearth warp menu or teleport to a warp.
+    usage: /warp [name]
+  setwarp:
+    description: Create or update a server warp.
+    permission: hearth.essentials.admin
+    usage: /setwarp <name>
+  delwarp:
+    description: Delete a server warp.
+    permission: hearth.essentials.admin
+    usage: /delwarp <name>
