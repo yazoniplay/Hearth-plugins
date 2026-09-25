@@ -371,7 +371,7 @@ public final class HearthEssentialsPlugin extends JavaPlugin implements Listener
         afkPlayers.remove(playerId);
     }
 
-    private void recordBack(Player player) {
+    public void recordBack(Player player) {
         lastLocations.put(player.getUniqueId(), player.getLocation().clone());
     }
 
