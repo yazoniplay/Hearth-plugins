@@ -18,14 +18,19 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.UUID;
 
 public final class HearthMarketPlugin extends JavaPlugin implements Listener {
     private static final String TITLE = ChatColor.DARK_GRAY + "🔥 Hearth Market";
+    private static final String CONFIRM_TITLE = ChatColor.DARK_GRAY + "🔥 Confirm Purchase";
     private int nextId = 1;
     private EconomyService economy;
+    private final Map<UUID, Map<Integer, String>> visibleListings = new HashMap<>();
+    private final Map<UUID, String> pendingPurchases = new HashMap<>();
 
     @Override
     public void onEnable() {
@@ -49,14 +54,8 @@ public final class HearthMarketPlugin extends JavaPlugin implements Listener {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (!(sender instanceof Player player)) {
-            sender.sendMessage("Players only.");
-            return true;
-        }
-        if (args.length == 0) {
-            openMarket(player);
-            return true;
-        }
+        if (!(sender instanceof Player player)) { sender.sendMessage("Players only."); return true; }
+        if (args.length == 0) { openMarket(player); return true; }
         switch (args[0].toLowerCase(Locale.ROOT)) {
             case "sell" -> sell(player, args);
             case "buy" -> buy(player, args);
@@ -87,7 +86,11 @@ public final class HearthMarketPlugin extends JavaPlugin implements Listener {
 
     private void buy(Player player, String[] args) {
         if (args.length != 2) { player.sendMessage(ChatColor.GRAY + "Usage: /market buy <id>"); return; }
-        String path = "listings." + args[1];
+        purchase(player, args[1]);
+    }
+
+    private void purchase(Player player, String id) {
+        String path = "listings." + id;
         if (!getConfig().isConfigurationSection(path)) { player.sendMessage(ChatColor.RED + "That listing does not exist."); return; }
         UUID seller;
         try { seller = UUID.fromString(getConfig().getString(path + ".seller", "")); } catch (IllegalArgumentException ex) { player.sendMessage(ChatColor.RED + "This listing is invalid."); return; }
@@ -98,12 +101,17 @@ public final class HearthMarketPlugin extends JavaPlugin implements Listener {
         if (player.getInventory().firstEmpty() == -1) { player.sendMessage(ChatColor.RED + "Make room in your inventory first."); return; }
         if (!economy.withdraw(player.getUniqueId(), price)) { player.sendMessage(ChatColor.RED + "You do not have enough money."); return; }
         economy.deposit(seller, price);
-        player.getInventory().addItem(item);
+        Map<Integer, ItemStack> leftovers = player.getInventory().addItem(item);
+        if (!leftovers.isEmpty()) {
+            economy.deposit(player.getUniqueId(), price);
+            player.sendMessage(ChatColor.RED + "Your inventory has no room for this item. No money was taken.");
+            return;
+        }
         getConfig().set(path, null);
         saveConfig();
-        player.sendMessage(ChatColor.GREEN + "Purchased listing #" + args[1] + " for " + economy.format(price) + ".");
+        player.sendMessage(ChatColor.GREEN + "Purchased listing #" + id + " for " + economy.format(price) + ".");
         Player sellerPlayer = Bukkit.getPlayer(seller);
-        if (sellerPlayer != null) sellerPlayer.sendMessage(ChatColor.GREEN + player.getName() + " bought your listing #" + args[1] + ".");
+        if (sellerPlayer != null) sellerPlayer.sendMessage(ChatColor.GREEN + player.getName() + " bought your listing #" + id + ".");
     }
 
     private void cancel(Player player, String[] args) {
@@ -112,7 +120,10 @@ public final class HearthMarketPlugin extends JavaPlugin implements Listener {
         if (!getConfig().isConfigurationSection(path)) { player.sendMessage(ChatColor.RED + "That listing does not exist."); return; }
         if (!player.getUniqueId().toString().equals(getConfig().getString(path + ".seller"))) { player.sendMessage(ChatColor.RED + "You do not own this listing."); return; }
         ItemStack item = getConfig().getItemStack(path + ".item");
-        if (item != null) player.getInventory().addItem(item);
+        if (item != null) {
+            Map<Integer, ItemStack> leftovers = player.getInventory().addItem(item);
+            if (!leftovers.isEmpty()) { player.sendMessage(ChatColor.RED + "Make room in your inventory first."); return; }
+        }
         getConfig().set(path, null);
         saveConfig();
         player.sendMessage(ChatColor.YELLOW + "Listing #" + args[1] + " cancelled.");
@@ -120,6 +131,7 @@ public final class HearthMarketPlugin extends JavaPlugin implements Listener {
 
     private void openMarket(Player player) {
         Inventory inventory = Bukkit.createInventory(null, 54, TITLE);
+        Map<Integer, String> slotMap = new HashMap<>();
         ConfigurationSection listings = getConfig().getConfigurationSection("listings");
         int slot = 0;
         if (listings != null) {
@@ -133,26 +145,62 @@ public final class HearthMarketPlugin extends JavaPlugin implements Listener {
                 lore.add(ChatColor.GRAY + "Listing: #" + id);
                 lore.add(ChatColor.GRAY + "Seller: " + listings.getString(id + ".seller-name", "Unknown"));
                 lore.add(ChatColor.GOLD + "Price: " + economy.format(listings.getDouble(id + ".price")));
-                lore.add(ChatColor.YELLOW + "/market buy " + id);
+                lore.add(ChatColor.YELLOW + "Click to view purchase confirmation");
                 if (meta != null) { meta.setLore(lore); display.setItemMeta(meta); }
-                inventory.setItem(slot++, display);
+                inventory.setItem(slot, display);
+                slotMap.put(slot, id);
+                slot++;
             }
         }
+        visibleListings.put(player.getUniqueId(), slotMap);
         inventory.setItem(49, item(Material.GOLD_INGOT, ChatColor.GOLD + "Sell Held Item", "Use /market sell <price>"));
         player.openInventory(inventory);
     }
 
-    private ItemStack item(Material material, String name, String lore) {
+    private void openConfirmation(Player player, String id) {
+        String path = "listings." + id;
+        ItemStack listed = getConfig().getItemStack(path + ".item");
+        if (listed == null || !getConfig().isConfigurationSection(path)) { player.sendMessage(ChatColor.RED + "That listing no longer exists."); return; }
+        Inventory inventory = Bukkit.createInventory(null, 27, CONFIRM_TITLE);
+        inventory.setItem(11, listed.clone());
+        inventory.setItem(13, item(Material.EMERALD, ChatColor.GREEN + "Confirm Purchase", "Click to buy this item"));
+        inventory.setItem(15, item(Material.RED_DYE, ChatColor.RED + "Cancel", "Return to the market"));
+        inventory.setItem(22, item(Material.PAPER, ChatColor.YELLOW + "Purchase Details", "Seller: " + getConfig().getString(path + ".seller-name", "Unknown"), "Price: " + economy.format(getConfig().getDouble(path + ".price"))));
+        pendingPurchases.put(player.getUniqueId(), id);
+        player.openInventory(inventory);
+    }
+
+    private ItemStack item(Material material, String name, String... loreLines) {
         ItemStack stack = new ItemStack(material);
         ItemMeta meta = stack.getItemMeta();
         meta.setDisplayName(name);
-        meta.setLore(List.of(ChatColor.GRAY + lore));
+        meta.setLore(List.of(loreLines));
         stack.setItemMeta(meta);
         return stack;
     }
 
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
-        if (TITLE.equals(event.getView().getTitle())) event.setCancelled(true);
+        if (!(event.getWhoClicked() instanceof Player player)) return;
+        String title = event.getView().getTitle();
+        if (TITLE.equals(title)) {
+            event.setCancelled(true);
+            if (event.getRawSlot() < 45) {
+                String id = visibleListings.getOrDefault(player.getUniqueId(), Map.of()).get(event.getRawSlot());
+                if (id != null) openConfirmation(player, id);
+            }
+        } else if (CONFIRM_TITLE.equals(title)) {
+            event.setCancelled(true);
+            String id = pendingPurchases.get(player.getUniqueId());
+            if (id == null) return;
+            if (event.getRawSlot() == 13) {
+                pendingPurchases.remove(player.getUniqueId());
+                player.closeInventory();
+                purchase(player, id);
+            } else if (event.getRawSlot() == 15) {
+                pendingPurchases.remove(player.getUniqueId());
+                openMarket(player);
+            }
+        }
     }
 }
