@@ -41,6 +41,10 @@ public final class HearthEssentialsPlugin extends JavaPlugin implements Listener
         loadSpawn();
         loadHomes();
         Bukkit.getPluginManager().registerEvents(this, this);
+        WarpCommand warpCommand = new WarpCommand(this);
+        getCommand("warp").setExecutor(warpCommand);
+        getCommand("setwarp").setExecutor(warpCommand);
+        getCommand("delwarp").setExecutor(warpCommand);
         getLogger().info("HearthEssentials enabled.");
     }
 
