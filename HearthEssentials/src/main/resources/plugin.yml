@@ -1,0 +1,39 @@
+name: HearthEssentials
+version: 0.1.0-SNAPSHOT
+main: dev.hearthsmp.essentials.HearthEssentialsPlugin
+api-version: '1.21'
+author: Hearth SMP
+description: Hearth SMP everyday utilities, homes, warps, teleportation and economy foundation.
+depend: [HearthCore]
+commands:
+  essentials:
+    description: Open the HearthEssentials menu.
+    aliases: [hearthmenu, he]
+  sethome:
+    description: Set your home.
+  home:
+    description: Teleport to your home.
+  delhome:
+    description: Delete your home.
+  spawn:
+    description: Teleport to spawn.
+  setspawn:
+    description: Set server spawn.
+    permission: hearth.essentials.admin
+  tpa:
+    description: Request teleportation to a player.
+  tpaccept:
+    description: Accept a teleport request.
+  tpdeny:
+    description: Deny a teleport request.
+  msg:
+    description: Send a private message.
+    aliases: [tell, whisper]
+  r:
+    description: Reply to a private message.
+    aliases: [reply]
+permissions:
+  hearth.essentials.use:
+    default: true
+  hearth.essentials.admin:
+    default: op
