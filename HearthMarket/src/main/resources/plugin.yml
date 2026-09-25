@@ -1,0 +1,14 @@
+name: HearthMarket
+version: 0.1.0-SNAPSHOT
+main: dev.hearthsmp.market.HearthMarketPlugin
+api-version: '1.21'
+author: Hearth SMP
+description: Hearth SMP player market foundation.
+depend: [HearthCore]
+commands:
+  market:
+    description: Open the Hearth Market GUI.
+    aliases: [shop, marketplace]
+permissions:
+  hearth.market.use:
+    default: true
