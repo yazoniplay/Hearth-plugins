@@ -11,6 +11,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -22,6 +23,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.HashSet;
+import java.util.Set;
 
 public final class HearthEssentialsPlugin extends JavaPlugin implements Listener {
     private static final String MENU = ChatColor.DARK_GRAY + "🔥 HearthEssentials";
@@ -33,6 +36,9 @@ public final class HearthEssentialsPlugin extends JavaPlugin implements Listener
     private final Map<UUID, PendingTeleport> teleportRequests = new HashMap<>();
     private final Map<UUID, UUID> lastMessaged = new HashMap<>();
     private final Map<UUID, Map<Integer, UUID>> teleportMenuPlayers = new HashMap<>();
+    private final Map<UUID, Location> lastLocations = new HashMap<>();
+    private final Set<UUID> afkPlayers = new HashSet<>();
+    private final Map<UUID, Set<UUID>> ignoredPlayers = new HashMap<>();
     private Location spawn;
 
     @Override
@@ -40,6 +46,7 @@ public final class HearthEssentialsPlugin extends JavaPlugin implements Listener
         saveDefaultConfig();
         loadSpawn();
         loadHomes();
+        loadIgnoredPlayers();
         Bukkit.getPluginManager().registerEvents(this, this);
         WarpCommand warpCommand = new WarpCommand(this);
         getCommand("warp").setExecutor(warpCommand);
@@ -72,6 +79,9 @@ public final class HearthEssentialsPlugin extends JavaPlugin implements Listener
             case "tpdeny" -> denyTeleport(player);
             case "msg" -> privateMessage(player, args);
             case "r" -> reply(player, args);
+            case "back" -> teleportBack(player);
+            case "afk" -> toggleAfk(player);
+            case "ignore" -> ignorePlayer(player, args);
             default -> { return false; }
         }
         return true;
@@ -89,6 +99,7 @@ public final class HearthEssentialsPlugin extends JavaPlugin implements Listener
             player.sendMessage(ChatColor.RED + "You have no home set.");
             return;
         }
+        recordBack(player);
         player.teleport(home);
         player.sendMessage(ChatColor.GREEN + "Teleported home.");
     }
@@ -117,6 +128,7 @@ public final class HearthEssentialsPlugin extends JavaPlugin implements Listener
             player.sendMessage(ChatColor.RED + "Spawn has not been set.");
             return;
         }
+        recordBack(player);
         player.teleport(spawn);
         player.sendMessage(ChatColor.GREEN + "Teleported to spawn.");
     }
@@ -151,6 +163,7 @@ public final class HearthEssentialsPlugin extends JavaPlugin implements Listener
             target.sendMessage(ChatColor.RED + "That player is no longer online.");
             return;
         }
+        recordBack(requester);
         requester.teleport(target.getLocation());
         requester.sendMessage(ChatColor.GREEN + "Teleport request accepted.");
         target.sendMessage(ChatColor.GREEN + "Teleport request accepted.");
@@ -199,6 +212,10 @@ public final class HearthEssentialsPlugin extends JavaPlugin implements Listener
     }
 
     private void sendPrivateMessage(Player sender, Player recipient, String message) {
+        if (ignoredPlayers.getOrDefault(recipient.getUniqueId(), Set.of()).contains(sender.getUniqueId())) {
+            sender.sendMessage(ChatColor.RED + recipient.getName() + " is ignoring you.");
+            return;
+        }
         lastMessaged.put(sender.getUniqueId(), recipient.getUniqueId());
         lastMessaged.put(recipient.getUniqueId(), sender.getUniqueId());
         sender.sendMessage(ChatColor.LIGHT_PURPLE + "To " + recipient.getName() + ": " + message);
@@ -250,11 +267,14 @@ public final class HearthEssentialsPlugin extends JavaPlugin implements Listener
     }
 
     private void openMenu(Player player) {
-        Inventory inventory = Bukkit.createInventory(null, 27, MENU);
-        inventory.setItem(11, item(Material.RED_BED, ChatColor.GOLD + "Homes", "Open home management"));
-        inventory.setItem(13, item(Material.COMPASS, ChatColor.GOLD + "Spawn", "Click to teleport to spawn"));
-        inventory.setItem(15, item(Material.ENDER_PEARL, ChatColor.GOLD + "Teleport", "Choose an online player"));
-        inventory.setItem(22, item(Material.BOOK, ChatColor.YELLOW + "Help", "Hearth everyday utilities"));
+        Inventory inventory = Bukkit.createInventory(null, 36, MENU);
+        inventory.setItem(10, item(Material.RED_BED, ChatColor.GOLD + "Homes", "Open home management"));
+        inventory.setItem(12, item(Material.COMPASS, ChatColor.GOLD + "Spawn", "Click to teleport to spawn"));
+        inventory.setItem(14, item(Material.ENDER_PEARL, ChatColor.GOLD + "Teleport", "Choose an online player"));
+        inventory.setItem(16, item(Material.ENDER_EYE, ChatColor.GOLD + "Warps", "Open server warps"));
+        inventory.setItem(21, item(Material.COMPASS, ChatColor.GOLD + "Back", "Return to your last location"));
+        inventory.setItem(23, item(Material.CLOCK, ChatColor.GOLD + "AFK", afkPlayers.contains(player.getUniqueId()) ? "You are currently AFK" : "Toggle AFK mode"));
+        inventory.setItem(31, item(Material.BOOK, ChatColor.YELLOW + "Help", "Hearth everyday utilities"));
         player.openInventory(inventory);
     }
 
@@ -305,9 +325,12 @@ public final class HearthEssentialsPlugin extends JavaPlugin implements Listener
         String title = event.getView().getTitle();
         if (MENU.equals(title)) {
             event.setCancelled(true);
-            if (event.getRawSlot() == 11) openHomesMenu(player);
-            else if (event.getRawSlot() == 13) teleportSpawn(player);
-            else if (event.getRawSlot() == 15) openTeleportMenu(player);
+            if (event.getRawSlot() == 10) openHomesMenu(player);
+            else if (event.getRawSlot() == 12) teleportSpawn(player);
+            else if (event.getRawSlot() == 14) openTeleportMenu(player);
+            else if (event.getRawSlot() == 16) player.performCommand("warp");
+            else if (event.getRawSlot() == 21) teleportBack(player);
+            else if (event.getRawSlot() == 23) toggleAfk(player);
         } else if (HOMES_MENU.equals(title)) {
             event.setCancelled(true);
             if (event.getRawSlot() == 11) {
@@ -344,6 +367,91 @@ public final class HearthEssentialsPlugin extends JavaPlugin implements Listener
         lastMessaged.remove(playerId);
         lastMessaged.values().removeIf(id -> id.equals(playerId));
         teleportMenuPlayers.remove(playerId);
+        lastLocations.remove(playerId);
+        afkPlayers.remove(playerId);
+    }
+
+    private void recordBack(Player player) {
+        lastLocations.put(player.getUniqueId(), player.getLocation().clone());
+    }
+
+    private void teleportBack(Player player) {
+        Location location = lastLocations.get(player.getUniqueId());
+        if (location == null) {
+            player.sendMessage(ChatColor.RED + "You have no previous location.");
+            return;
+        }
+        Location current = player.getLocation().clone();
+        player.teleport(location);
+        lastLocations.put(player.getUniqueId(), current);
+        player.sendMessage(ChatColor.GREEN + "Teleported back.");
+    }
+
+    private void toggleAfk(Player player) {
+        UUID id = player.getUniqueId();
+        if (afkPlayers.remove(id)) {
+            player.sendMessage(ChatColor.GREEN + "You are no longer AFK.");
+        } else {
+            afkPlayers.add(id);
+            player.sendMessage(ChatColor.YELLOW + "You are now AFK.");
+        }
+    }
+
+    private void ignorePlayer(Player player, String[] args) {
+        if (args.length != 1) {
+            player.sendMessage(ChatColor.GRAY + "Usage: /ignore <player>");
+            return;
+        }
+        Player target = Bukkit.getPlayerExact(args[0]);
+        if (target == null) {
+            player.sendMessage(ChatColor.RED + "Player not found.");
+            return;
+        }
+        if (target.equals(player)) {
+            player.sendMessage(ChatColor.RED + "You cannot ignore yourself.");
+            return;
+        }
+        Set<UUID> ignored = ignoredPlayers.computeIfAbsent(player.getUniqueId(), key -> new HashSet<>());
+        if (!ignored.add(target.getUniqueId())) {
+            ignored.remove(target.getUniqueId());
+            player.sendMessage(ChatColor.YELLOW + "You are no longer ignoring " + target.getName() + ".");
+        } else {
+            player.sendMessage(ChatColor.GREEN + "You are now ignoring " + target.getName() + ".");
+        }
+        saveIgnoredPlayers();
+    }
+
+    private void loadIgnoredPlayers() {
+        if (!getConfig().isConfigurationSection("ignored")) return;
+        for (String key : getConfig().getConfigurationSection("ignored").getKeys(false)) {
+            try {
+                UUID playerId = UUID.fromString(key);
+                Set<UUID> ignored = new HashSet<>();
+                for (String target : getConfig().getStringList("ignored." + key)) {
+                    try { ignored.add(UUID.fromString(target)); } catch (IllegalArgumentException ignoredTarget) {}
+                }
+                ignoredPlayers.put(playerId, ignored);
+            } catch (IllegalArgumentException ignoredPlayer) {}
+        }
+    }
+
+    private void saveIgnoredPlayers() {
+        getConfig().set("ignored", null);
+        for (Map.Entry<UUID, Set<UUID>> entry : ignoredPlayers.entrySet()) {
+            getConfig().set("ignored." + entry.getKey(), entry.getValue().stream().map(UUID::toString).toList());
+        }
+        saveConfig();
+    }
+
+    @EventHandler
+    public void onMove(PlayerMoveEvent event) {
+        if (event.getTo() == null) return;
+        if (event.getFrom().getBlockX() == event.getTo().getBlockX()
+                && event.getFrom().getBlockY() == event.getTo().getBlockY()
+                && event.getFrom().getBlockZ() == event.getTo().getBlockZ()) return;
+        if (afkPlayers.remove(event.getPlayer().getUniqueId())) {
+            event.getPlayer().sendMessage(ChatColor.YELLOW + "You are no longer AFK.");
+        }
     }
 
     private record PendingTeleport(UUID requester, long createdAt) {}
