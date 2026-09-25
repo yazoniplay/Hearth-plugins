@@ -14,6 +14,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.Arrays;
@@ -24,11 +25,14 @@ import java.util.UUID;
 
 public final class HearthEssentialsPlugin extends JavaPlugin implements Listener {
     private static final String MENU = ChatColor.DARK_GRAY + "🔥 HearthEssentials";
+    private static final String HOMES_MENU = ChatColor.DARK_GRAY + "🔥 Hearth Homes";
+    private static final String TELEPORT_MENU = ChatColor.DARK_GRAY + "🔥 Hearth Teleport";
     private static final long TPA_TIMEOUT_MILLIS = 60_000L;
 
     private final Map<UUID, Location> homes = new HashMap<>();
     private final Map<UUID, PendingTeleport> teleportRequests = new HashMap<>();
     private final Map<UUID, UUID> lastMessaged = new HashMap<>();
+    private final Map<UUID, Map<Integer, UUID>> teleportMenuPlayers = new HashMap<>();
     private Location spawn;
 
     @Override
@@ -243,25 +247,90 @@ public final class HearthEssentialsPlugin extends JavaPlugin implements Listener
 
     private void openMenu(Player player) {
         Inventory inventory = Bukkit.createInventory(null, 27, MENU);
-        inventory.setItem(11, item(Material.RED_BED, ChatColor.GOLD + "Homes", "Use /sethome, /home and /delhome"));
-        inventory.setItem(13, item(Material.COMPASS, ChatColor.GOLD + "Spawn", "Teleport to server spawn"));
-        inventory.setItem(15, item(Material.ENDER_PEARL, ChatColor.GOLD + "Teleport", "Use /tpa to request teleportation"));
-        inventory.setItem(22, item(Material.BOOK, ChatColor.YELLOW + "Help", "Everyday Hearth utilities"));
+        inventory.setItem(11, item(Material.RED_BED, ChatColor.GOLD + "Homes", "Open home management"));
+        inventory.setItem(13, item(Material.COMPASS, ChatColor.GOLD + "Spawn", "Click to teleport to spawn"));
+        inventory.setItem(15, item(Material.ENDER_PEARL, ChatColor.GOLD + "Teleport", "Choose an online player"));
+        inventory.setItem(22, item(Material.BOOK, ChatColor.YELLOW + "Help", "Hearth everyday utilities"));
         player.openInventory(inventory);
     }
 
-    private ItemStack item(Material material, String name, String lore) {
+    private void openHomesMenu(Player player) {
+        Inventory inventory = Bukkit.createInventory(null, 27, HOMES_MENU);
+        inventory.setItem(11, item(Material.RED_BED, ChatColor.GREEN + "Go Home", homes.containsKey(player.getUniqueId()) ? "Click to teleport home" : "No home set"));
+        inventory.setItem(13, item(Material.WRITABLE_BOOK, ChatColor.YELLOW + "Set Home", "Save your current location"));
+        inventory.setItem(15, item(Material.BARRIER, ChatColor.RED + "Delete Home", homes.containsKey(player.getUniqueId()) ? "Remove your home" : "No home to delete"));
+        inventory.setItem(22, item(Material.ARROW, ChatColor.GRAY + "Back", "Return to HearthEssentials"));
+        player.openInventory(inventory);
+    }
+
+    private void openTeleportMenu(Player player) {
+        Inventory inventory = Bukkit.createInventory(null, 54, TELEPORT_MENU);
+        Map<Integer, UUID> players = new HashMap<>();
+        int slot = 0;
+        for (Player target : Bukkit.getOnlinePlayers()) {
+            if (target.equals(player)) continue;
+            if (slot >= 45) break;
+            ItemStack head = new ItemStack(Material.PLAYER_HEAD);
+            SkullMeta meta = (SkullMeta) head.getItemMeta();
+            meta.setOwningPlayer(target);
+            meta.setDisplayName(ChatColor.GREEN + target.getName());
+            meta.setLore(List.of(ChatColor.GRAY + "Click to send a teleport request"));
+            head.setItemMeta(meta);
+            inventory.setItem(slot, head);
+            players.put(slot, target.getUniqueId());
+            slot++;
+        }
+        if (players.isEmpty()) inventory.setItem(22, item(Material.BARRIER, ChatColor.RED + "No Other Players", "Nobody else is online"));
+        inventory.setItem(49, item(Material.ARROW, ChatColor.GRAY + "Back", "Return to HearthEssentials"));
+        teleportMenuPlayers.put(player.getUniqueId(), players);
+        player.openInventory(inventory);
+    }
+
+    private ItemStack item(Material material, String name, String... loreLines) {
         ItemStack stack = new ItemStack(material);
         ItemMeta meta = stack.getItemMeta();
         meta.setDisplayName(name);
-        meta.setLore(List.of(ChatColor.GRAY + lore));
+        meta.setLore(List.of(loreLines));
         stack.setItemMeta(meta);
         return stack;
     }
 
     @EventHandler
     public void onMenuClick(InventoryClickEvent event) {
-        if (MENU.equals(event.getView().getTitle())) event.setCancelled(true);
+        if (!(event.getWhoClicked() instanceof Player player)) return;
+        String title = event.getView().getTitle();
+        if (MENU.equals(title)) {
+            event.setCancelled(true);
+            if (event.getRawSlot() == 11) openHomesMenu(player);
+            else if (event.getRawSlot() == 13) teleportSpawn(player);
+            else if (event.getRawSlot() == 15) openTeleportMenu(player);
+        } else if (HOMES_MENU.equals(title)) {
+            event.setCancelled(true);
+            if (event.getRawSlot() == 11) {
+                teleportHome(player);
+            } else if (event.getRawSlot() == 13) {
+                setHome(player);
+                openHomesMenu(player);
+            } else if (event.getRawSlot() == 15) {
+                deleteHome(player);
+                openHomesMenu(player);
+            } else if (event.getRawSlot() == 22) {
+                openMenu(player);
+            }
+        } else if (TELEPORT_MENU.equals(title)) {
+            event.setCancelled(true);
+            if (event.getRawSlot() == 49) {
+                openMenu(player);
+                return;
+            }
+            UUID targetId = teleportMenuPlayers.getOrDefault(player.getUniqueId(), Map.of()).get(event.getRawSlot());
+            if (targetId != null) {
+                Player target = Bukkit.getPlayer(targetId);
+                if (target != null) requestTeleport(player, new String[]{target.getName()});
+                else player.sendMessage(ChatColor.RED + "That player is no longer online.");
+                openTeleportMenu(player);
+            }
+        }
     }
 
     @EventHandler
@@ -270,6 +339,7 @@ public final class HearthEssentialsPlugin extends JavaPlugin implements Listener
         teleportRequests.entrySet().removeIf(entry -> entry.getKey().equals(playerId) || entry.getValue().requester().equals(playerId));
         lastMessaged.remove(playerId);
         lastMessaged.values().removeIf(id -> id.equals(playerId));
+        teleportMenuPlayers.remove(playerId);
     }
 
     private record PendingTeleport(UUID requester, long createdAt) {}
