@@ -32,11 +32,6 @@ commands:
   r:
     description: Reply to a private message.
     aliases: [reply]
-permissions:
-  hearth.essentials.use:
-    default: true
-  hearth.essentials.admin:
-    default: op
   warp:
     description: Open the Hearth warp menu or teleport to a warp.
     usage: /warp [name]
@@ -48,3 +43,17 @@ permissions:
     description: Delete a server warp.
     permission: hearth.essentials.admin
     usage: /delwarp <name>
+  back:
+    description: Return to your previous location.
+    usage: /back
+  afk:
+    description: Toggle AFK mode.
+    usage: /afk
+  ignore:
+    description: Toggle ignoring a player.
+    usage: /ignore <player>
+permissions:
+  hearth.essentials.use:
+    default: true
+  hearth.essentials.admin:
+    default: op
