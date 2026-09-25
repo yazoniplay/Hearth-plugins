@@ -10,6 +10,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -24,7 +25,7 @@ public final class WarpCommand implements CommandExecutor, Listener {
     private static final String TITLE = ChatColor.DARK_GRAY + "🔥 Hearth Warps";
     private final HearthEssentialsPlugin plugin;
     private final Map<String, Location> warps = new LinkedHashMap<>();
-    private final Map<Integer, String> slots = new HashMap<>();
+    private final Map<UUID, Map<Integer, String>> menuSlots = new HashMap<>();
 
     public WarpCommand(HearthEssentialsPlugin plugin) {
         this.plugin = plugin;
@@ -106,7 +107,7 @@ public final class WarpCommand implements CommandExecutor, Listener {
 
     private void openMenu(Player player) {
         Inventory inventory = Bukkit.createInventory(null, 54, TITLE);
-        slots.clear();
+        Map<Integer, String> slots = new HashMap<>();
 
         int slot = 0;
         for (String name : warps.keySet()) {
@@ -121,6 +122,7 @@ public final class WarpCommand implements CommandExecutor, Listener {
         }
 
         inventory.setItem(49, item(Material.BARRIER, ChatColor.GRAY + "Close"));
+        menuSlots.put(player.getUniqueId(), slots);
         player.openInventory(inventory);
     }
 
@@ -135,11 +137,16 @@ public final class WarpCommand implements CommandExecutor, Listener {
             return;
         }
 
-        String name = slots.get(event.getRawSlot());
+        String name = menuSlots.getOrDefault(player.getUniqueId(), Map.of()).get(event.getRawSlot());
         if (name != null) {
             teleport(player, name);
             player.closeInventory();
         }
+    }
+
+    @EventHandler
+    public void onQuit(PlayerQuitEvent event) {
+        menuSlots.remove(event.getPlayer().getUniqueId());
     }
 
     private ItemStack item(Material material, String name, String... lore) {
