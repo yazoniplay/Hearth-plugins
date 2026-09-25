@@ -3,7 +3,7 @@ package dev.hearthsmp.core;
 import dev.hearthsmp.core.command.HearthCommand;
 import dev.hearthsmp.core.config.HearthConfig;
 import dev.hearthsmp.core.data.PlayerDataService;
-import dev.hearthsmp.core.ui.HearthUI;
+import dev.hearthsmp.core.ui.HearthUI;\nimport dev.hearthsmp.core.placeholder.HearthPlaceholderExpansion;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class HearthCorePlugin extends JavaPlugin {
@@ -20,7 +20,7 @@ public final class HearthCorePlugin extends JavaPlugin {
         hearthUI = new HearthUI(this);
 
         hearthConfig.load();
-        playerDataService.start();
+        playerDataService.start();\n\n        if (getServer().getPluginManager().getPlugin("PlaceholderAPI") != null) {\n            new HearthPlaceholderExpansion(this).register();\n            getLogger().info("PlaceholderAPI integration enabled.");\n        }
 
         getCommand("hearth").setExecutor(new HearthCommand(this));
         getCommand("hearth").setTabCompleter(new HearthCommand(this));
