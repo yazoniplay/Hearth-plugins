@@ -3,11 +3,12 @@ version: 0.1.0-SNAPSHOT
 main: dev.hearthsmp.market.HearthMarketPlugin
 api-version: '1.21'
 author: Hearth SMP
-description: Hearth SMP player market foundation.
-depend: [HearthCore]
+description: Hearth SMP persistent player marketplace.
+depend: [HearthCore, HearthEconomy]
 commands:
   market:
-    description: Open the Hearth Market GUI.
+    description: Open and manage the Hearth Market.
+    usage: /market [sell <price>|buy <id>|cancel <id>]
     aliases: [shop, marketplace]
 permissions:
   hearth.market.use:
