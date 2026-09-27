@@ -50,7 +50,8 @@ public final class WinterPopulator extends BlockPopulator {
     }
 
     private void frozenTaiga(World w, Random r, int bx, int bz) {
-        for (int i = 0; i < 3 + r.nextInt(4); i++) spruce(w, r, bx + r.nextInt(16), bz + r.nextInt(16), 7 + r.nextInt(5), 3);
+        for (int i = 0; i < 2 + r.nextInt(3); i++) ancientSpruceWinterTree(w, r, bx + r.nextInt(16), bz + r.nextInt(16));
+        for (int i = 0; i < 2 + r.nextInt(3); i++) spruce(w, r, bx + r.nextInt(16), bz + r.nextInt(16), 7 + r.nextInt(5), 3);
     }
 
     private void whiteoutPlains(World w, Random r, int bx, int bz) {
@@ -111,9 +112,11 @@ public final class WinterPopulator extends BlockPopulator {
     private void crystalTundra(World w, Random r, int bx, int bz) {
         for (int i = 0; i < 3 + r.nextInt(4); i++) amethystPine(w, r, bx + r.nextInt(16), bz + r.nextInt(16));
         if (r.nextDouble() < 0.22) crystalShrine(w, bx + 8, bz + 8);
+        if (r.nextDouble() < 0.28) warpedFrostTree(w, r, bx + r.nextInt(16), bz + r.nextInt(16));
     }
 
     private void frozenMarsh(World w, Random r, int bx, int bz) {
+        if (r.nextDouble() < 0.30) mangroveWinterTree(w, r, bx + r.nextInt(16), bz + r.nextInt(16));
         for (int i = 0; i < 5; i++) {
             int x = bx + r.nextInt(16), z = bz + r.nextInt(16);
             int y = w.getHighestBlockYAt(x, z);
@@ -144,7 +147,82 @@ public final class WinterPopulator extends BlockPopulator {
 
     private void skywoodHighlands(World w, Random r, int bx, int bz) {
         for (int i = 0; i < 2 + r.nextInt(3); i++) birchFrostTree(w, r, bx + r.nextInt(16), bz + r.nextInt(16));
+        if (r.nextDouble() < 0.22) mangroveWinterTree(w, r, bx + r.nextInt(16), bz + r.nextInt(16));
         if (r.nextDouble() < 0.10) tower(w, r, bx + 8, w.getHighestBlockYAt(bx + 8, bz + 8) + 1, bz + 8);
+    }
+
+
+    // Original organic tree silhouettes inspired by common Minecraft landscaping
+    // principles: layered canopies, irregular trunks, branch variation and scale.
+    private void warpedFrostTree(World w, Random r, int x, int z) {
+        int y = w.getHighestBlockYAt(x, z) + 1;
+        int h = 8 + r.nextInt(6);
+        int lean = r.nextInt(3) - 1;
+        for (int i = 0; i < h; i++) {
+            int tx = x + (i > h / 2 ? lean : 0);
+            w.getBlockAt(tx, y + i, z).setType(Material.WARPED_STEM, false);
+            if (i > 2 && i % 2 == 0) {
+                w.getBlockAt(tx + 1, y + i, z).setType(Material.WARPED_STEM, false);
+                w.getBlockAt(tx - 1, y + i, z).setType(Material.WARPED_STEM, false);
+            }
+        }
+        for (int layer = 0; layer < h - 2; layer += 2) {
+            int rad = Math.max(1, 4 - layer / 4);
+            int cy = y + h - layer;
+            for (int dx = -rad; dx <= rad; dx++) for (int dz = -rad; dz <= rad; dz++) {
+                if (dx * dx + dz * dz <= rad * rad + 1) {
+                    w.getBlockAt(x + dx + lean, cy, z + dz).setType(Material.WARPED_WART_BLOCK, false);
+                }
+            }
+        }
+        w.getBlockAt(x + lean, y + h + 1, z).setType(Material.SNOW, false);
+    }
+
+    private void mangroveWinterTree(World w, Random r, int x, int z) {
+        int y = w.getHighestBlockYAt(x, z) + 1;
+        int h = 7 + r.nextInt(5);
+        for (int i = 0; i < h; i++) {
+            int tx = x + (i > 2 ? (i % 3) - 1 : 0);
+            w.getBlockAt(tx, y + i, z).setType(Material.MANGROVE_LOG, false);
+            if (i == 2 || i == 4) {
+                w.getBlockAt(tx + 1, y + i, z).setType(Material.MANGROVE_ROOTS, false);
+                w.getBlockAt(tx - 1, y + i, z).setType(Material.MANGROVE_ROOTS, false);
+            }
+        }
+        // Exposed roots make this useful in frozen marshes and river edges.
+        for (int dx = -3; dx <= 3; dx++) for (int dz = -3; dz <= 3; dz++) {
+            if (Math.abs(dx) + Math.abs(dz) <= 3 && r.nextDouble() < 0.55) {
+                w.getBlockAt(x + dx, y, z + dz).setType(Material.MANGROVE_ROOTS, false);
+            }
+        }
+        int crownY = y + h - 1;
+        for (int dx = -4; dx <= 4; dx++) for (int dz = -4; dz <= 4; dz++) {
+            int d = dx * dx + dz * dz;
+            if (d <= 16 && r.nextDouble() < 0.78) {
+                w.getBlockAt(x + dx, crownY + r.nextInt(3), z + dz).setType(Material.MANGROVE_LEAVES, false);
+            }
+        }
+        w.getBlockAt(x, crownY + 3, z).setType(Material.SNOW, false);
+    }
+
+    private void ancientSpruceWinterTree(World w, Random r, int x, int z) {
+        int y = w.getHighestBlockYAt(x, z) + 1;
+        int h = 14 + r.nextInt(8);
+        for (int i = 0; i < h; i++) {
+            int tx = x + (i > 5 ? (i % 3) - 1 : 0);
+            w.getBlockAt(tx, y + i, z).setType(Material.SPRUCE_LOG, false);
+        }
+        for (int layer = 2; layer < h; layer += 2) {
+            int rad = Math.max(1, 6 - layer / 3);
+            int cy = y + h - layer;
+            for (int dx = -rad; dx <= rad; dx++) for (int dz = -rad; dz <= rad; dz++) {
+                if (dx * dx + dz * dz <= rad * rad) {
+                    w.getBlockAt(x + dx, cy, z + dz).setType(Material.SPRUCE_LEAVES, false);
+                    if (r.nextDouble() < 0.18) w.getBlockAt(x + dx, cy + 1, z + dz).setType(Material.SNOW, false);
+                }
+            }
+        }
+        w.getBlockAt(x, y + h, z).setType(Material.SNOW_BLOCK, false);
     }
 
     private void amethystPine(World w, Random r, int x, int z) {
