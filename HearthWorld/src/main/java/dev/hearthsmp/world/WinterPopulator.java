@@ -52,6 +52,7 @@ public final class WinterPopulator extends BlockPopulator {
     private void frozenTaiga(World w, Random r, int bx, int bz) {
         for (int i = 0; i < 2 + r.nextInt(3); i++) ancientSpruceWinterTree(w, r, bx + r.nextInt(16), bz + r.nextInt(16));
         for (int i = 0; i < 2 + r.nextInt(3); i++) spruce(w, r, bx + r.nextInt(16), bz + r.nextInt(16), 7 + r.nextInt(5), 3);
+        if (r.nextDouble() < 0.45) frostForestMix(w,r,bx,bz);
     }
 
     private void whiteoutPlains(World w, Random r, int bx, int bz) {
@@ -78,6 +79,7 @@ public final class WinterPopulator extends BlockPopulator {
 
     private void frozenGrove(World w, Random r, int bx, int bz) {
         for (int i = 0; i < 2 + r.nextInt(4); i++) crookedPine(w, r, bx + r.nextInt(16), bz + r.nextInt(16));
+        if (r.nextDouble() < 0.65) frostForestMix(w,r,bx,bz);
         if (r.nextDouble() < 0.15) mushroomGrove(w, bx + 8, bz + 8);
     }
 
@@ -203,6 +205,67 @@ public final class WinterPopulator extends BlockPopulator {
             }
         }
         w.getBlockAt(x, crownY + 3, z).setType(Material.SNOW, false);
+    }
+
+    private void oakFrostGiant(World w, Random r, int x, int z) {
+        deciduousTree(w, r, x, z, Material.OAK_LOG, Material.OAK_LEAVES, 9 + r.nextInt(7), 4, true);
+    }
+
+    private void jungleFrostGiant(World w, Random r, int x, int z) {
+        deciduousTree(w, r, x, z, Material.JUNGLE_LOG, Material.JUNGLE_LEAVES, 11 + r.nextInt(7), 5, true);
+    }
+
+    private void acaciaFrostTree(World w, Random r, int x, int z) {
+        int y=w.getHighestBlockYAt(x,z)+1, h=7+r.nextInt(5);
+        for(int i=0;i<h;i++) w.getBlockAt(x+(i>h/2?i%3-1:0),y+i,z).setType(Material.ACACIA_LOG,false);
+        for(int dx=-4;dx<=4;dx++) for(int dz=-4;dz<=4;dz++)
+            if(dx*dx+dz*dz<=16 && r.nextDouble()<.8) w.getBlockAt(x+dx,y+h-1+r.nextInt(2),z+dz).setType(Material.ACACIA_LEAVES,false);
+        w.getBlockAt(x,y+h,z).setType(Material.SNOW,false);
+    }
+
+    private void cherryFrostTree(World w, Random r, int x, int z) {
+        deciduousTree(w, r, x, z, Material.CHERRY_LOG, Material.CHERRY_LEAVES, 8 + r.nextInt(6), 4, true);
+    }
+
+    private void paleFrostTree(World w, Random r, int x, int z) {
+        deciduousTree(w, r, x, z, Material.PALE_OAK_LOG, Material.PALE_OAK_LEAVES, 10 + r.nextInt(7), 5, true);
+    }
+
+    private void deciduousTree(World w, Random r, int x, int z, Material log, Material leaves, int h, int maxRadius, boolean snow) {
+        int y=w.getHighestBlockYAt(x,z)+1;
+        for(int i=0;i<h;i++) {
+            int tx=x+(i>h/2?(i%3)-1:0), tz=z+(i>h/2?((i+1)%3)-1:0);
+            w.getBlockAt(tx,y+i,tz).setType(log,false);
+            if(i>3 && i%3==0) {
+                w.getBlockAt(tx+1,y+i,tz).setType(log,false);
+                w.getBlockAt(tx-1,y+i,tz).setType(log,false);
+            }
+        }
+        for(int layer=2;layer<h;layer+=2) {
+            int radius=Math.max(1,maxRadius-layer/4), cy=y+h-layer;
+            for(int dx=-radius;dx<=radius;dx++) for(int dz=-radius;dz<=radius;dz++) {
+                if(dx*dx+dz*dz<=radius*radius+1) {
+                    w.getBlockAt(x+dx,cy,z+dz).setType(leaves,false);
+                    if(snow && r.nextDouble()<.22) w.getBlockAt(x+dx,cy+1,z+dz).setType(Material.SNOW,false);
+                }
+            }
+        }
+    }
+
+    private void frostForestMix(World w, Random r, int bx, int bz) {
+        int count=3+r.nextInt(4);
+        for(int i=0;i<count;i++) {
+            int x=bx+r.nextInt(16), z=bz+r.nextInt(16);
+            switch(r.nextInt(8)) {
+                case 0,1 -> oakFrostGiant(w,r,x,z);
+                case 2 -> birchFrostTree(w,r,x,z);
+                case 3 -> ancientSpruceWinterTree(w,r,x,z);
+                case 4 -> giantDarkSpruce(w,r,x,z);
+                case 5 -> cherryFrostTree(w,r,x,z);
+                case 6 -> paleFrostTree(w,r,x,z);
+                default -> acaciaFrostTree(w,r,x,z);
+            }
+        }
     }
 
     private void ancientSpruceWinterTree(World w, Random r, int x, int z) {
