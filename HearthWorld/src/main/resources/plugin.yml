@@ -1,0 +1,21 @@
+name: HearthWorld
+version: 0.1.0-SNAPSHOT
+main: dev.hearthsmp.world.HearthWorldPlugin
+api-version: '1.21'
+author: Hearth SMP
+description: Permanent winter terrain, biome regions, ice formations and winter structures.
+load: STARTUP
+
+commands:
+  hearthworld:
+    description: Manage the Hearth winter world.
+    usage: /hearthworld <create|info|help>
+    permission: hearth.world.use
+
+permissions:
+  hearth.world.use:
+    description: Allows HearthWorld commands.
+    default: true
+  hearth.world.create:
+    description: Allows creation of the Hearth winter world.
+    default: op
