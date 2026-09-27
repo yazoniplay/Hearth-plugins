@@ -10,6 +10,7 @@ import org.bukkit.entity.Player;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Random;
 
 public final class HearthWorldCommand implements CommandExecutor {
     private static final Map<String, Integer> REGIONS = new LinkedHashMap<>();
@@ -24,6 +25,12 @@ public final class HearthWorldCommand implements CommandExecutor {
         REGIONS.put("frost-valley", 7);
         REGIONS.put("aurora-peaks", 8);
         REGIONS.put("frozen-rift", 9);
+        REGIONS.put("crystal-tundra", 10);
+        REGIONS.put("frozen-marsh", 11);
+        REGIONS.put("redwood-snow-forest", 12);
+        REGIONS.put("ice-canyon", 13);
+        REGIONS.put("frozen-basin", 14);
+        REGIONS.put("skywood-highlands", 15);
     }
 
     private final HearthWorldPlugin plugin;
@@ -42,12 +49,22 @@ public final class HearthWorldCommand implements CommandExecutor {
         if (args.length == 0 || args[0].equalsIgnoreCase("list")) {
             player.sendMessage(ChatColor.AQUA + "❄ HearthWorld regions:");
             for (String name : REGIONS.keySet()) player.sendMessage(ChatColor.GRAY + " • " + name);
-            player.sendMessage(ChatColor.YELLOW + "Use: /hw biome <region>");
+            player.sendMessage(ChatColor.YELLOW + "Use: /hw biome <region> or /hw village");
+            return true;
+        }
+
+        if (args[0].equalsIgnoreCase("village")) {
+            World world = plugin.getServer().getWorld(plugin.getConfig().getString("world.name", "world"));
+            if (world == null) { player.sendMessage(ChatColor.RED + "World is not loaded."); return true; }
+            Location village = findVillage(world);
+            if (village == null) { player.sendMessage(ChatColor.RED + "No generated village found in the search area yet."); return true; }
+            player.teleport(village);
+            player.sendMessage(ChatColor.GOLD + "🔥 Teleported to a Hearth winter village.");
             return true;
         }
 
         if (!args[0].equalsIgnoreCase("biome") || args.length < 2) {
-            player.sendMessage(ChatColor.YELLOW + "Use: /hw biome <region> or /hw list");
+            player.sendMessage(ChatColor.YELLOW + "Use: /hw biome <region>, /hw village, or /hw list");
             return true;
         }
 
@@ -95,6 +112,23 @@ public final class HearthWorldCommand implements CommandExecutor {
                     if (isSafe(loc)) return loc;
                 }
             }
+        }
+        return null;
+    }
+
+    private Location findVillage(World world) {
+        long seed = world.getSeed();
+        for (int gx = -20; gx <= 20; gx++) for (int gz = -20; gz <= 20; gz++) {
+            int style = WinterChunkGenerator.regionStyle(seed, gx * 2000 + 1000, gz * 2000 + 1000);
+            if (style != 0 && style != 4 && style != 5 && style != 12 && style != 15) continue;
+            long n = seed ^ (gx * 341873128712L) ^ (gz * 132897987541L);
+            Random r = new Random(n);
+            if (r.nextDouble() > .72) continue;
+            int x = gx * 2000 + 1000 + r.nextInt(601) - 300;
+            int z = gz * 2000 + 1000 + r.nextInt(601) - 300;
+            int y = world.getHighestBlockYAt(x, z);
+            Location loc = new Location(world, x + .5, y + 1, z + .5);
+            if (isSafe(loc)) return loc;
         }
         return null;
     }
