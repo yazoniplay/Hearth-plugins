@@ -38,6 +38,9 @@ public final class WinterPopulator extends BlockPopulator {
         if (random.nextDouble() < 0.018) {
             generateStructure(world, random, baseX, baseZ);
         }
+        if (random.nextDouble() < 0.035) {
+            generateGlacier(world, random, baseX, baseZ);
+        }
     }
 
     private void freezeWater(World world, int baseX, int baseZ) {
@@ -111,6 +114,30 @@ public final class WinterPopulator extends BlockPopulator {
         world.getBlockAt(x, y + 1, z + 1).setType(Material.CAMPFIRE, false);
         world.getBlockAt(x, y + 1, z + 2).setType(Material.CHEST, false);
         world.getBlockAt(x, y + 1, z - 3).setType(Material.SPRUCE_DOOR, false);
+    }
+
+
+    private void generateGlacier(World world, Random random, int baseX, int baseZ) {
+        int x = baseX + 2 + random.nextInt(12);
+        int z = baseZ + 2 + random.nextInt(12);
+        int y = world.getHighestBlockYAt(x, z);
+        if (y < 55 || !world.getBlockAt(x, y, z).getType().isSolid()) return;
+
+        int radius = 2 + random.nextInt(4);
+        int height = 4 + random.nextInt(7);
+
+        for (int dx = -radius; dx <= radius; dx++) {
+            for (int dz = -radius; dz <= radius; dz++) {
+                double distance = Math.sqrt(dx * dx + dz * dz);
+                if (distance > radius) continue;
+
+                int columnHeight = Math.max(1, (int) (height * (1.0 - distance / (radius + 0.5))));
+                for (int dy = 0; dy < columnHeight; dy++) {
+                    Material material = dy > columnHeight - 2 ? Material.ICE : Material.PACKED_ICE;
+                    world.getBlockAt(x + dx, y + dy + 1, z + dz).setType(material, false);
+                }
+            }
+        }
     }
 
     private void generateFrozenSpring(World world, int x, int y, int z) {
