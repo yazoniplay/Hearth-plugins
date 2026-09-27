@@ -111,7 +111,7 @@ public final class WinterVillageGenerator {
                 for (int dy = 0; dy < 14; dy++) {
                     Block b = w.getBlockAt(x + dx, y + dy, z + dz);
                     if (b.getType() == Material.SNOW || b.getType() == Material.SNOW_BLOCK
-                            || b.getType() == Material.LEAVES || b.getType().name().endsWith("_LEAVES")) {
+                            || b.getType().name().endsWith("_LEAVES")) {
                         b.setType(Material.AIR, false);
                     }
                 }
