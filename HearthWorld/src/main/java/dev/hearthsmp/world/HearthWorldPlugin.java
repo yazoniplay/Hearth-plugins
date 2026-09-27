@@ -15,16 +15,19 @@ public final class HearthWorldPlugin extends JavaPlugin {
     @Override
     public void onEnable() {
         saveDefaultConfig();
-
         printStartupBanner();
 
         winterWorldListener = new WinterWorldListener(this);
         getServer().getPluginManager().registerEvents(winterWorldListener, this);
 
+        WinterEvents winterEvents = new WinterEvents(this);
+        getServer().getPluginManager().registerEvents(winterEvents, this);
+
         World world = getServer().getWorld(getConfig().getString("world.name", "world"));
         if (world != null) {
             winterWorldListener.applyWinterWeather(world);
             startWinterAmbience(world);
+            winterEvents.startBlizzards(world);
             getLogger().info("❄ Winter atmosphere attached to world: " + world.getName());
         } else {
             getLogger().warning("⚠ World '" + getConfig().getString("world.name", "world")
@@ -52,6 +55,7 @@ public final class HearthWorldPlugin extends JavaPlugin {
         getLogger().info("# Generator : Hearth Winter Terrain");
         getLogger().info("# Biomes    : Frozen / Snowy / Alpine");
         getLogger().info("# Structures: Cabins / Glaciers / Springs");
+        getLogger().info("# Events    : Blizzards / Discoveries / Scouts");
         getLogger().info("# Ambience  : Snowstorm / Aurora / Ice");
         getLogger().info("############################################################");
         getLogger().info("");
