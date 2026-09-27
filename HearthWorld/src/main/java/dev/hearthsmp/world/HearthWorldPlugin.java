@@ -16,6 +16,8 @@ public final class HearthWorldPlugin extends JavaPlugin {
     public void onEnable() {
         saveDefaultConfig();
 
+        printStartupBanner();
+
         winterWorldListener = new WinterWorldListener(this);
         getServer().getPluginManager().registerEvents(winterWorldListener, this);
 
@@ -23,9 +25,13 @@ public final class HearthWorldPlugin extends JavaPlugin {
         if (world != null) {
             winterWorldListener.applyWinterWeather(world);
             startWinterAmbience(world);
+            getLogger().info("❄ Winter atmosphere attached to world: " + world.getName());
+        } else {
+            getLogger().warning("⚠ World '" + getConfig().getString("world.name", "world")
+                    + "' is not loaded yet. Winter rules will apply when it loads.");
         }
 
-        getLogger().info("HearthWorld enabled for world: " + getConfig().getString("world.name", "world"));
+        getLogger().info("🔥 HearthWorld enabled.");
     }
 
     @Override
@@ -33,15 +39,29 @@ public final class HearthWorldPlugin extends JavaPlugin {
         return new WinterChunkGenerator(getConfig());
     }
 
+    private void printStartupBanner() {
+        getLogger().info("");
+        getLogger().info("############################################################");
+        getLogger().info("#                                                          #");
+        getLogger().info("#              ❄ HEARTH WORLD IS COLDING ❄               #");
+        getLogger().info("#                                                          #");
+        getLogger().info("#                 THE WINTER HAS ARRIVED                  #");
+        getLogger().info("#                                                          #");
+        getLogger().info("############################################################");
+        getLogger().info("# World     : " + getConfig().getString("world.name", "world"));
+        getLogger().info("# Generator : Hearth Winter Terrain");
+        getLogger().info("# Biomes    : Frozen / Snowy / Alpine");
+        getLogger().info("# Structures: Cabins / Glaciers / Springs");
+        getLogger().info("# Ambience  : Snowstorm / Aurora / Ice");
+        getLogger().info("############################################################");
+        getLogger().info("");
+    }
+
     private void startWinterAmbience(World world) {
         if (!getConfig().getBoolean("ambience.aurora", true)) return;
 
         long interval = Math.max(20L, getConfig().getLong("ambience.aurora-interval-ticks", 200L));
         Bukkit.getScheduler().runTaskTimer(this, () -> {
-            if (!world.isChunkLoaded(0, 0)) {
-                // No-op: the world can still be used; this avoids forcing chunk loads.
-            }
-
             for (Player player : world.getPlayers()) {
                 if (player.getLocation().getY() < getConfig().getDouble("ambience.aurora-min-height", 90.0)) continue;
                 if (ThreadLocalRandom.current().nextDouble() > 0.18) continue;
