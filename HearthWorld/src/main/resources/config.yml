@@ -1,0 +1,34 @@
+# HearthWorld
+# Winter generation for Hearth SMP.
+
+world:
+  name: "hearth_winter"
+
+generation:
+  snow-cover: true
+  frozen-water: true
+  snow-drifts: true
+  icicles: true
+  winter-structures: true
+  structure-chance: 0.018
+
+regions:
+  frozen-taiga: true
+  snowy-pinewood: true
+  glacier-fields: true
+  frostpeak-mountains: true
+  snowstorm-plains: true
+  frozen-grove: true
+  icebound-coast: true
+  frost-valley: true
+  aurora-peaks: true
+
+ambience:
+  permanent-storm: true
+  thunder: false
+  freeze-water: true
+
+structures:
+  cabins: true
+  frozen-springs: true
+  glacier-formation: true
