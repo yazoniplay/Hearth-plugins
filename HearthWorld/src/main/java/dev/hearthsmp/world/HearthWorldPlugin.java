@@ -23,6 +23,8 @@ public final class HearthWorldPlugin extends JavaPlugin {
         WinterEvents winterEvents = new WinterEvents(this);
         getServer().getPluginManager().registerEvents(winterEvents, this);
 
+        getCommand("hearthworld").setExecutor(new WinterBiomeCommand(this));
+
         World world = getServer().getWorld(getConfig().getString("world.name", "world"));
         if (world != null) {
             winterWorldListener.applyWinterWeather(world);
