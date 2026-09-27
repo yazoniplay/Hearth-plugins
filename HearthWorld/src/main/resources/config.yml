@@ -1,10 +1,11 @@
 # HearthWorld
-# Winter generation for Hearth SMP.
+# The frozen identity of Hearth SMP.
 
 world:
   name: "world"
 
 generation:
+  terrain-sculpting: true
   snow-cover: true
   frozen-water: true
   snow-drifts: true
@@ -26,9 +27,24 @@ regions:
 ambience:
   permanent-storm: true
   thunder: false
-  freeze-water: true
+  aurora: true
+  aurora-interval-ticks: 200
+  aurora-min-height: 90
+  snow-accumulation-height: 8
 
 structures:
   cabins: true
   frozen-springs: true
   glacier-formation: true
+
+events:
+  enabled: true
+  blizzards:
+    enabled: true
+    interval-ticks: 600
+    duration-ticks: 1200
+
+season:
+  id: "the-first-flame"
+  name: "The First Flame"
+  description: "The world froze. The Hearth survived."
