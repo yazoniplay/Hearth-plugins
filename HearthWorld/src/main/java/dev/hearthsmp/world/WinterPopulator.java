@@ -12,7 +12,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import java.util.List;
 import java.util.Random;
 
-public final class WinterPopulator extends BlockPopulator {
+public final class WinterPopulator extends BlockPopulator {\n    // Prevent recursive chunk-population when decorations touch neighboring chunks.\n    private static final ThreadLocal<Boolean> POPULATING = ThreadLocal.withInitial(() -> false);
     @Override
     public void populate(World world, Random random, Chunk chunk) {
         int baseX = chunk.getX() << 4;
@@ -55,7 +55,7 @@ public final class WinterPopulator extends BlockPopulator {
         if (random.nextDouble() < 0.018) generateChristmasClearing(world, random, baseX + 8, baseZ + 8);
     }
 
-    private void frozenTaiga(World w, Random r, int bx, int bz) {
+        } finally {\n            POPULATING.set(false);\n        }\n    }\n\n    private void frozenTaiga(World w, Random r, int bx, int bz) {
         for (int i = 0; i < 2 + r.nextInt(3); i++) ancientSpruceWinterTree(w, r, bx + r.nextInt(16), bz + r.nextInt(16));
         for (int i = 0; i < 2 + r.nextInt(3); i++) spruce(w, r, bx + r.nextInt(16), bz + r.nextInt(16), 7 + r.nextInt(5), 3);
         if (r.nextDouble() < 0.45) frostForestMix(w,r,bx,bz);
