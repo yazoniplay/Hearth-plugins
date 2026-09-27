@@ -22,6 +22,9 @@ public final class WinterPopulator extends BlockPopulator {
 
         freezeWater(world, baseX, baseZ);
 
+        // Large deterministic villages anchor the winter regions.
+        WinterVillageGenerator.tryGenerate(world, chunk.getX(), chunk.getZ());
+
         // Every region gets its own vegetation/landmark language.
         switch (style) {
             case 0 -> frozenTaiga(world, random, baseX, baseZ);
