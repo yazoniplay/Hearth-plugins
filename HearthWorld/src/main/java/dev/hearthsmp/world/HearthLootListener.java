@@ -32,7 +32,6 @@ public final class HearthLootListener implements Listener {
                 for (int z = 0; z < 16; z++) {
                     Block block = chunk.getBlock(x, y, z);
                     if (!(block.getState() instanceof Chest chest)) continue;
-                    if (!chest.getPersistentDataContainer().has(generatedKey, PersistentDataType.BYTE)) continue;
                     if (chest.getInventory().isEmpty()) {
                         fill(chest, new Random(chunk.getWorld().getSeed() ^ (chunk.getX() * 341873128712L) ^ (chunk.getZ() * 132897987541L) ^ y));
                     }
