@@ -6,6 +6,12 @@ author: Hearth SMP
 description: Permanent winter terrain, biome regions, ice formations and winter structures.
 load: STARTUP
 
+commands:
+  hearthworld:
+    description: Explore and teleport to HearthWorld winter regions.
+    usage: /hearthworld biome <region>
+    aliases: [hw]
+
 permissions:
   hearth.world.use:
     description: Allows HearthWorld winter features.
