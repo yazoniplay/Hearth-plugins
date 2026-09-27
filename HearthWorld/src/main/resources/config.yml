@@ -2,7 +2,7 @@
 # Winter generation for Hearth SMP.
 
 world:
-  name: "hearth_winter"
+  name: "world"
 
 generation:
   snow-cover: true
