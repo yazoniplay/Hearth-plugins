@@ -19,6 +19,7 @@ public final class HearthWorldPlugin extends JavaPlugin {
 
         winterWorldListener = new WinterWorldListener(this);
         getServer().getPluginManager().registerEvents(winterWorldListener, this);
+        getServer().getPluginManager().registerEvents(new HearthLootListener(this), this);
 
         HearthWorldCommand command = new HearthWorldCommand(this);
         if (getCommand("hearthworld") != null) getCommand("hearthworld").setExecutor(command);
