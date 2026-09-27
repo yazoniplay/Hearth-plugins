@@ -87,7 +87,7 @@ public final class WinterVillageGenerator {
     private static void inn(World w,int x,int y,int z,Random r,Material log,Material plank,Material roof,Material stone){
         shell(w,x,y,z,8,5,5,log,plank,stone);roof(w,x,y+6,z,8,5,roof);door(w,x,y+1,z-5);window(w,x-8,y+2,z);window(w,x+8,y+2,z);
         w.getBlockAt(x,y+1,z).setType(Material.CAMPFIRE,false);w.getBlockAt(x-5,y+1,z+2).setType(Material.BOOKSHELF,false);w.getBlockAt(x+4,y+1,z+2).setType(Material.BARREL,false);
-        w.getBlockAt(x-4,y+1,z).setType(Material.WHITE_BED,false);w.getBlockAt(x+4,y+1,z).setType(Material.BED,false);chest(w,r,x+5,y+1,z+2,4);chimney(w,x-6,y+1,z+2,y+8);
+        w.getBlockAt(x-4,y+1,z).setType(Material.WHITE_BED,false);w.getBlockAt(x+4,y+1,z).setType(Material.WHITE_BED,false);chest(w,r,x+5,y+1,z+2,4);chimney(w,x-6,y+1,z+2,y+8);
     }
 
     private static void bakery(World w,int x,int y,int z,Material log,Material plank,Material roof,Material stone){
