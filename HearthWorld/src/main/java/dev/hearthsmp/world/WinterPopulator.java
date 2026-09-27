@@ -47,6 +47,12 @@ public final class WinterPopulator extends BlockPopulator {
 
         if (random.nextDouble() < 0.045) generateLandmark(world, random, baseX, baseZ, style);
         if (random.nextDouble() < 0.035) generateGlacier(world, random, baseX, baseZ);
+
+        // Small details make the world feel inhabited instead of procedurally empty.
+        if (random.nextDouble() < 0.22) generateCozyDetail(world, random, baseX, baseZ, style);
+        if (random.nextDouble() < 0.08) generateFrozenPond(world, random, baseX + 8, baseZ + 8);
+        if (random.nextDouble() < 0.035) generateSnowyBridge(world, random, baseX + 8, baseZ + 8);
+        if (random.nextDouble() < 0.018) generateChristmasClearing(world, random, baseX + 8, baseZ + 8);
     }
 
     private void frozenTaiga(World w, Random r, int bx, int bz) {
@@ -337,6 +343,127 @@ public final class WinterPopulator extends BlockPopulator {
         w.getBlockAt(x - 3, y + 1, z - 3).setType(Material.BARREL, false);
         w.getBlockAt(x + 3, y + 1, z - 3).setType(Material.CHEST, false);
         chest(w, r, x + 3, y + 2, z - 3, 4);
+    }
+
+    private void generateCozyDetail(World w, Random r, int bx, int bz, int style) {
+        int x=bx+2+r.nextInt(12), z=bz+2+r.nextInt(12);
+        int y=w.getHighestBlockYAt(x,z)+1;
+        switch(r.nextInt(8)) {
+            case 0 -> {
+                w.getBlockAt(x,y,z).setType(Material.CAMPFIRE,false);
+                for(int i=0;i<4;i++) {
+                    int dx=(i%2==0?1:-1)*(2+(i/2));
+                    w.getBlockAt(x+dx,y,z).setType(Material.SPRUCE_LOG,false);
+                }
+                w.getBlockAt(x,y+2,z).setType(Material.SNOW,false);
+            }
+            case 1 -> {
+                w.getBlockAt(x,y,z).setType(Material.BARREL,false);
+                w.getBlockAt(x+1,y,z).setType(Material.SPRUCE_PLANKS,false);
+                w.getBlockAt(x,y+1,z).setType(Material.LANTERN,false);
+            }
+            case 2 -> {
+                for(int i=-2;i<=2;i++) {
+                    w.getBlockAt(x+i,y,z).setType(Material.SNOW_BLOCK,false);
+                    if(Math.abs(i)<2) w.getBlockAt(x+i,y+1,z).setType(Material.SNOW,false);
+                }
+                w.getBlockAt(x,y+1,z).setType(Material.SPRUCE_FENCE,false);
+                w.getBlockAt(x,y+2,z).setType(Material.LANTERN,false);
+            }
+            case 3 -> generateLogPile(w,x,y,z);
+            case 4 -> {
+                w.getBlockAt(x,y,z).setType(Material.POWDER_SNOW,false);
+                w.getBlockAt(x+1,y,z).setType(Material.ICE,false);
+                w.getBlockAt(x-1,y,z).setType(Material.SNOW,false);
+            }
+            case 5 -> generateSnowyRock(w,r,x,y,z);
+            case 6 -> {
+                w.getBlockAt(x,y,z).setType(Material.SPRUCE_PLANKS,false);
+                w.getBlockAt(x+1,y,z).setType(Material.SPRUCE_PLANKS,false);
+                w.getBlockAt(x,y+1,z).setType(Material.LANTERN,false);
+                w.getBlockAt(x+1,y+1,z).setType(Material.LANTERN,false);
+            }
+            default -> {
+                if(style==5 || style==11) mangroveWinterTree(w,r,x,z);
+                else if(style==12 || style==15) oakFrostGiant(w,r,x,z);
+                else ancientSpruceWinterTree(w,r,x,z);
+            }
+        }
+    }
+
+    private void generateLogPile(World w,int x,int y,int z) {
+        for(int layer=0;layer<2;layer++) for(int i=0;i<4;i++) {
+            int dx=(i%2)*2-1, dz=(i/2)*2-1;
+            w.getBlockAt(x+dx,y+layer,z+dz).setType(Material.SPRUCE_LOG,false);
+        }
+        w.getBlockAt(x,y+2,z).setType(Material.SNOW,false);
+    }
+
+    private void generateSnowyRock(World w,Random r,int x,int y,int z) {
+        Material[] rocks={Material.STONE,Material.ANDESITE,Material.DIORITE,Material.GRANITE};
+        Material rock=rocks[r.nextInt(rocks.length)];
+        for(int dx=-1;dx<=1;dx++) for(int dz=-1;dz<=1;dz++)
+            if(dx*dx+dz*dz<=2) w.getBlockAt(x+dx,y,z+dz).setType(rock,false);
+        w.getBlockAt(x,y+1,z).setType(Material.SNOW,false);
+    }
+
+    private void generateFrozenPond(World w,Random r,int x,int z) {
+        int y=w.getHighestBlockYAt(x,z);
+        int radius=3+r.nextInt(3);
+        for(int dx=-radius;dx<=radius;dx++) for(int dz=-radius;dz<=radius;dz++) {
+            if(dx*dx+dz*dz<=radius*radius) {
+                int yy=w.getHighestBlockYAt(x+dx,z+dz);
+                if(Math.abs(yy-y)<=2) {
+                    w.getBlockAt(x+dx,yy,z+dz).setType(Material.ICE,false);
+                    if(r.nextDouble()<.18) w.getBlockAt(x+dx,yy+1,z+dz).setType(Material.SNOW,false);
+                }
+            }
+        }
+        w.getBlockAt(x,y+1,z).setType(Material.SNOW,false);
+        w.getBlockAt(x+radius+1,y+1,z).setType(Material.SPRUCE_FENCE,false);
+        w.getBlockAt(x+radius+1,y+2,z).setType(Material.LANTERN,false);
+    }
+
+    private void generateSnowyBridge(World w,Random r,int x,int z) {
+        int y=w.getHighestBlockYAt(x,z)+1;
+        for(int i=-4;i<=4;i++) {
+            w.getBlockAt(x+i,y,z).setType(Material.SPRUCE_PLANKS,false);
+            if(Math.abs(i)==4) {
+                w.getBlockAt(x+i,y+1,z-1).setType(Material.SPRUCE_FENCE,false);
+                w.getBlockAt(x+i,y+1,z+1).setType(Material.SPRUCE_FENCE,false);
+            }
+            if(i%2==0) {
+                w.getBlockAt(x+i,y+1,z-1).setType(Material.SPRUCE_FENCE,false);
+                w.getBlockAt(x+i,y+1,z+1).setType(Material.SPRUCE_FENCE,false);
+            }
+        }
+        w.getBlockAt(x,y+1,z).setType(Material.SNOW,false);
+        w.getBlockAt(x-4,y+2,z).setType(Material.LANTERN,false);
+        w.getBlockAt(x+4,y+2,z).setType(Material.LANTERN,false);
+    }
+
+    private void generateChristmasClearing(World w,Random r,int x,int z) {
+        int y=w.getHighestBlockYAt(x,z)+1;
+        int h=8+r.nextInt(4);
+        for(int i=0;i<h;i++) w.getBlockAt(x,y+i,z).setType(Material.SPRUCE_LOG,false);
+        for(int layer=1;layer<h-1;layer+=2) {
+            int rad=Math.max(1,4-layer/3);
+            int cy=y+h-layer;
+            for(int dx=-rad;dx<=rad;dx++) for(int dz=-rad;dz<=rad;dz++)
+                if(dx*dx+dz*dz<=rad*rad) {
+                    w.getBlockAt(x+dx,cy,z+dz).setType(Material.SPRUCE_LEAVES,false);
+                    if(r.nextDouble()<.35) w.getBlockAt(x+dx,cy+1,z+dz).setType(Material.SNOW,false);
+                }
+        }
+        w.getBlockAt(x,y+h,z).setType(Material.GLOWSTONE,false);
+        // Simple seasonal decoration using vanilla blocks; no custom resource pack required.
+        for(int i=0;i<6;i++) {
+            double a=i*Math.PI/3.0;
+            int dx=(int)Math.round(Math.cos(a)*4), dz=(int)Math.round(Math.sin(a)*4);
+            w.getBlockAt(x+dx,y,z+dz).setType(i%2==0?Material.RED_WOOL:Material.GREEN_WOOL,false);
+            w.getBlockAt(x+dx,y+1,z+dz).setType(Material.SNOW,false);
+        }
+        w.getBlockAt(x,y+1,z).setType(Material.LANTERN,false);
     }
 
     private void generateLandmark(World w, Random r, int bx, int bz, int style) {
