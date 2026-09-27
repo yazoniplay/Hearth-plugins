@@ -12,50 +12,57 @@ import org.bukkit.inventory.meta.ItemMeta;
 import java.util.List;
 import java.util.Random;
 
-public final class WinterPopulator extends BlockPopulator {\n    // Prevent recursive chunk-population when decorations touch neighboring chunks.\n    private static final ThreadLocal<Boolean> POPULATING = ThreadLocal.withInitial(() -> false);
+public final class WinterPopulator extends BlockPopulator {
+    // Prevent recursive chunk-population when decorations touch neighboring chunks.
+    private static final ThreadLocal<Boolean> POPULATING = ThreadLocal.withInitial(() -> false);
     @Override
     public void populate(World world, Random random, Chunk chunk) {
-        int baseX = chunk.getX() << 4;
-        int baseZ = chunk.getZ() << 4;
-        long seed = world.getSeed();
-        int style = WinterChunkGenerator.regionStyle(seed, baseX + 8, baseZ + 8);
-
-        freezeWater(world, baseX, baseZ);
-
-        // Large deterministic villages anchor the winter regions.
-        WinterVillageGenerator.tryGenerate(world, chunk.getX(), chunk.getZ());
-
-        // Every region gets its own vegetation/landmark language.
-        switch (style) {
-            case 0 -> frozenTaiga(world, random, baseX, baseZ);
-            case 1 -> whiteoutPlains(world, random, baseX, baseZ);
-            case 2 -> glacierFields(world, random, baseX, baseZ);
-            case 3 -> frostPeaks(world, random, baseX, baseZ);
-            case 4 -> snowstormPlains(world, random, baseX, baseZ);
-            case 5 -> frozenGrove(world, random, baseX, baseZ);
-            case 6 -> iceboundCoast(world, random, baseX, baseZ);
-            case 7 -> frostValley(world, random, baseX, baseZ);
-            case 8 -> auroraPeaks(world, random, baseX, baseZ);
-            case 10 -> crystalTundra(world, random, baseX, baseZ);
-            case 11 -> frozenMarsh(world, random, baseX, baseZ);
-            case 12 -> redwoodSnowForest(world, random, baseX, baseZ);
-            case 13 -> iceCanyon(world, random, baseX, baseZ);
-            case 14 -> frozenBasin(world, random, baseX, baseZ);
-            case 15 -> skywoodHighlands(world, random, baseX, baseZ);
-            default -> frozenRift(world, random, baseX, baseZ);
+        // Block decoration can touch a neighboring chunk. Never recursively run
+        // the populator while the current chunk is still being populated.
+        if (Boolean.TRUE.equals(POPULATING.get())) {
+            return;
         }
+        POPULATING.set(true);
+        try {
+            int baseX = chunk.getX() << 4;
+            int baseZ = chunk.getZ() << 4;
+            long seed = world.getSeed();
+            int style = WinterChunkGenerator.regionStyle(seed, baseX + 8, baseZ + 8);
 
-        if (random.nextDouble() < 0.045) generateLandmark(world, random, baseX, baseZ, style);
-        if (random.nextDouble() < 0.035) generateGlacier(world, random, baseX, baseZ);
+            freezeWater(world, baseX, baseZ);
+            WinterVillageGenerator.tryGenerate(world, chunk.getX(), chunk.getZ());
 
-        // Small details make the world feel inhabited instead of procedurally empty.
-        if (random.nextDouble() < 0.22) generateCozyDetail(world, random, baseX, baseZ, style);
-        if (random.nextDouble() < 0.08) generateFrozenPond(world, random, baseX + 8, baseZ + 8);
-        if (random.nextDouble() < 0.035) generateSnowyBridge(world, random, baseX + 8, baseZ + 8);
-        if (random.nextDouble() < 0.018) generateChristmasClearing(world, random, baseX + 8, baseZ + 8);
+            switch (style) {
+                case 0 -> frozenTaiga(world, random, baseX, baseZ);
+                case 1 -> whiteoutPlains(world, random, baseX, baseZ);
+                case 2 -> glacierFields(world, random, baseX, baseZ);
+                case 3 -> frostPeaks(world, random, baseX, baseZ);
+                case 4 -> snowstormPlains(world, random, baseX, baseZ);
+                case 5 -> frozenGrove(world, random, baseX, baseZ);
+                case 6 -> iceboundCoast(world, random, baseX, baseZ);
+                case 7 -> frostValley(world, random, baseX, baseZ);
+                case 8 -> auroraPeaks(world, random, baseX, baseZ);
+                case 10 -> crystalTundra(world, random, baseX, baseZ);
+                case 11 -> frozenMarsh(world, random, baseX, baseZ);
+                case 12 -> redwoodSnowForest(world, random, baseX, baseZ);
+                case 13 -> iceCanyon(world, random, baseX, baseZ);
+                case 14 -> frozenBasin(world, random, baseX, baseZ);
+                case 15 -> skywoodHighlands(world, random, baseX, baseZ);
+                default -> frozenRift(world, random, baseX, baseZ);
+            }
+
+            if (random.nextDouble() < 0.045) generateLandmark(world, random, baseX, baseZ, style);
+            if (random.nextDouble() < 0.035) generateGlacier(world, random, baseX, baseZ);
+            if (random.nextDouble() < 0.22) generateCozyDetail(world, random, baseX, baseZ, style);
+            if (random.nextDouble() < 0.08) generateFrozenPond(world, random, baseX + 8, baseZ + 8);
+            if (random.nextDouble() < 0.035) generateSnowyBridge(world, random, baseX + 8, baseZ + 8);
+            if (random.nextDouble() < 0.018) generateChristmasClearing(world, random, baseX + 8, baseZ + 8);
+        } finally {
+            POPULATING.set(false);
+        }
     }
 
-        } finally {\n            POPULATING.set(false);\n        }\n    }\n\n    private void frozenTaiga(World w, Random r, int bx, int bz) {
+    private void frozenTaiga(World w, Random r, int bx, int bz) {
         for (int i = 0; i < 2 + r.nextInt(3); i++) ancientSpruceWinterTree(w, r, bx + r.nextInt(16), bz + r.nextInt(16));
         for (int i = 0; i < 2 + r.nextInt(3); i++) spruce(w, r, bx + r.nextInt(16), bz + r.nextInt(16), 7 + r.nextInt(5), 3);
         if (r.nextDouble() < 0.45) frostForestMix(w,r,bx,bz);
