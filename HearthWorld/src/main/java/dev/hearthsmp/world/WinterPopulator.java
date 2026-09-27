@@ -1,21 +1,17 @@
 package dev.hearthsmp.world;
 
-import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.generator.BlockPopulator;
-import org.bukkit.generator.WorldInfo;
 
 import java.util.Random;
 
 public final class WinterPopulator extends BlockPopulator {
     @Override
-    public void populate(WorldInfo worldInfo, Random random, Chunk chunk) {
-        World world = Bukkit.getWorld(worldInfo.getName());
-        if (world == null) return;
-
+    @SuppressWarnings("deprecation")
+    public void populate(World world, Random random, Chunk chunk) {
         int baseX = chunk.getX() << 4;
         int baseZ = chunk.getZ() << 4;
 
@@ -115,7 +111,6 @@ public final class WinterPopulator extends BlockPopulator {
         world.getBlockAt(x, y + 1, z + 2).setType(Material.CHEST, false);
         world.getBlockAt(x, y + 1, z - 3).setType(Material.SPRUCE_DOOR, false);
     }
-
 
     private void generateGlacier(World world, Random random, int baseX, int baseZ) {
         int x = baseX + 2 + random.nextInt(12);
