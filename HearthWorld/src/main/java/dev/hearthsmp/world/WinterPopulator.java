@@ -33,6 +33,12 @@ public final class WinterPopulator extends BlockPopulator {
             case 6 -> iceboundCoast(world, random, baseX, baseZ);
             case 7 -> frostValley(world, random, baseX, baseZ);
             case 8 -> auroraPeaks(world, random, baseX, baseZ);
+            case 10 -> crystalTundra(world, random, baseX, baseZ);
+            case 11 -> frozenMarsh(world, random, baseX, baseZ);
+            case 12 -> redwoodSnowForest(world, random, baseX, baseZ);
+            case 13 -> iceCanyon(world, random, baseX, baseZ);
+            case 14 -> frozenBasin(world, random, baseX, baseZ);
+            case 15 -> skywoodHighlands(world, random, baseX, baseZ);
             default -> frozenRift(world, random, baseX, baseZ);
         }
 
@@ -96,6 +102,97 @@ public final class WinterPopulator extends BlockPopulator {
             }
         }
         if (r.nextDouble() < 0.10) riftShrine(w, bx + 8, bz + 8);
+    }
+
+
+    private void crystalTundra(World w, Random r, int bx, int bz) {
+        for (int i = 0; i < 3 + r.nextInt(4); i++) amethystPine(w, r, bx + r.nextInt(16), bz + r.nextInt(16));
+        if (r.nextDouble() < 0.22) crystalShrine(w, bx + 8, bz + 8);
+    }
+
+    private void frozenMarsh(World w, Random r, int bx, int bz) {
+        for (int i = 0; i < 5; i++) {
+            int x = bx + r.nextInt(16), z = bz + r.nextInt(16);
+            int y = w.getHighestBlockYAt(x, z);
+            w.getBlockAt(x, y, z).setType(Material.PACKED_ICE, false);
+            w.getBlockAt(x, y + 1, z).setType(Material.SNOW, false);
+            if (r.nextBoolean()) w.getBlockAt(x, y + 2, z).setType(Material.DEAD_BUSH, false);
+        }
+        if (r.nextDouble() < 0.12) frozenWaterfall(w, bx + 8, bz + 8);
+    }
+
+    private void redwoodSnowForest(World w, Random r, int bx, int bz) {
+        for (int i = 0; i < 2 + r.nextInt(3); i++) giantDarkSpruce(w, r, bx + r.nextInt(16), bz + r.nextInt(16));
+        if (r.nextDouble() < 0.12) lodge(w, r, bx + 8, bz + 8);
+    }
+
+    private void iceCanyon(World w, Random r, int bx, int bz) {
+        for (int i = 0; i < 2; i++) iceSpike(w, bx + r.nextInt(16), bz + r.nextInt(16), 10 + r.nextInt(12));
+        if (r.nextDouble() < 0.14) iceArch(w, bx + 8, bz + 8);
+    }
+
+    private void frozenBasin(World w, Random r, int bx, int bz) {
+        for (int i = 0; i < 4; i++) {
+            int x = bx + r.nextInt(16), z = bz + r.nextInt(16);
+            snowDrift(w, w.getHighestBlockAt(x, z), r);
+        }
+        if (r.nextDouble() < 0.08) ruin(w, r, bx + 8, bz + 8, 4);
+    }
+
+    private void skywoodHighlands(World w, Random r, int bx, int bz) {
+        for (int i = 0; i < 2 + r.nextInt(3); i++) birchFrostTree(w, r, bx + r.nextInt(16), bz + r.nextInt(16));
+        if (r.nextDouble() < 0.10) tower(w, r, bx + 8, w.getHighestBlockYAt(bx + 8, bz + 8) + 1, bz + 8);
+    }
+
+    private void amethystPine(World w, Random r, int x, int z) {
+        int y = w.getHighestBlockYAt(x, z) + 1;
+        int h = 5 + r.nextInt(4);
+        for (int i = 0; i < h; i++) w.getBlockAt(x, y + i, z).setType(Material.DARK_OAK_LOG, false);
+        for (int i = 1; i < h; i++) {
+            int rad = Math.max(1, 3 - i / 3);
+            for (int dx = -rad; dx <= rad; dx++) for (int dz = -rad; dz <= rad; dz++)
+                if (dx * dx + dz * dz <= rad * rad) w.getBlockAt(x + dx, y + h - i, z + dz).setType(Material.AMETHYST_BLOCK, false);
+        }
+        w.getBlockAt(x, y + h, z).setType(Material.SNOW, false);
+    }
+
+    private void giantDarkSpruce(World w, Random r, int x, int z) {
+        int y = w.getHighestBlockYAt(x, z) + 1;
+        int h = 10 + r.nextInt(7);
+        for (int i = 0; i < h; i++) w.getBlockAt(x, y + i, z).setType(Material.DARK_OAK_LOG, false);
+        for (int i = 2; i < h; i++) {
+            int rad = Math.max(1, 5 - i / 3);
+            for (int dx = -rad; dx <= rad; dx++) for (int dz = -rad; dz <= rad; dz++)
+                if (dx * dx + dz * dz <= rad * rad) w.getBlockAt(x + dx, y + h - i, z + dz).setType(Material.DARK_OAK_LEAVES, false);
+        }
+    }
+
+    private void birchFrostTree(World w, Random r, int x, int z) {
+        int y = w.getHighestBlockYAt(x, z) + 1;
+        int h = 6 + r.nextInt(4);
+        for (int i = 0; i < h; i++) w.getBlockAt(x, y + i, z).setType(Material.BIRCH_LOG, false);
+        for (int i = 2; i < h; i++) {
+            int rad = Math.max(1, 3 - i / 3);
+            for (int dx = -rad; dx <= rad; dx++) for (int dz = -rad; dz <= rad; dz++)
+                if (dx * dx + dz * dz <= rad * rad) w.getBlockAt(x + dx, y + h - i, z + dz).setType(Material.BIRCH_LEAVES, false);
+        }
+    }
+
+    private void lodge(World w, Random r, int x, int z) {
+        int y = w.getHighestBlockYAt(x, z) + 1;
+        for (int dx = -5; dx <= 5; dx++) for (int dz = -4; dz <= 4; dz++) {
+            boolean floor = Math.abs(dx) <= 4 && Math.abs(dz) <= 3;
+            boolean wall = Math.abs(dx) == 5 || Math.abs(dz) == 4;
+            w.getBlockAt(x + dx, y, z + dz).setType(floor ? Material.DARK_OAK_PLANKS : wall ? Material.DARK_OAK_LOG : Material.AIR, false);
+        }
+        for (int h = 1; h <= 4; h++) {
+            for (int dx = -5 + h; dx <= 5 - h; dx++) for (int dz = -4 + h; dz <= 4 - h; dz++)
+                w.getBlockAt(x + dx, y + h, z + dz).setType(Material.SPRUCE_PLANKS, false);
+        }
+        w.getBlockAt(x, y + 1, z).setType(Material.CAMPFIRE, false);
+        w.getBlockAt(x - 3, y + 1, z - 3).setType(Material.BARREL, false);
+        w.getBlockAt(x + 3, y + 1, z - 3).setType(Material.CHEST, false);
+        chest(w, r, x + 3, y + 2, z - 3, 4);
     }
 
     private void generateLandmark(World w, Random r, int bx, int bz, int style) {
