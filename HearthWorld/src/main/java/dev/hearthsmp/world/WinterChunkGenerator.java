@@ -54,7 +54,13 @@ public final class WinterChunkGenerator extends ChunkGenerator {
                     case 6 -> -42 + macro * 8 + medium * 4;                       // icebound coast
                     case 7 -> -8 + Math.max(0, macro) * 18 - Math.max(0, -medium) * 18; // frost valley
                     case 8 -> 24 + Math.max(0, macro) * 42 + ridge * 30;          // aurora peaks
-                    default -> 4 + macro * 12;                                    // riftlands
+                    case 9 -> -8 + macro * 10;                                     // frozen rift
+                    case 10 -> 10 + Math.max(0, macro) * 20 + medium * 8;          // crystal tundra
+                    case 11 -> -16 + macro * 9 + medium * 4;                      // frozen marsh
+                    case 12 -> 3 + macro * 12 + detail * 12;                      // redwood snow forest
+                    case 13 -> 18 + Math.max(0, macro) * 30 - Math.max(0, medium) * 8; // ice canyon
+                    case 14 -> -30 + macro * 8;                                   // frozen basin
+                    default -> 8 + Math.max(0, macro) * 25 + ridge * 12;           // skywood highlands
                 };
 
                 // The Rift: a huge, recognizable frozen scar rather than another mountain.
@@ -66,8 +72,8 @@ public final class WinterChunkGenerator extends ChunkGenerator {
 
                 int target = Math.max(40, Math.min(210, (int) Math.round(vanillaTop + offset)));
 
-                if (style == 6 && target > 72) target = 72 + (int) Math.round(medium * 5);
-                if (style == 1) target = Math.min(target, 82);
+                if ((style == 6 || style == 11) && target > 72) target = 72 + (int) Math.round(medium * 5);
+                if (style == 1 || style == 11 || style == 14) target = Math.min(target, 82);
 
                 if (target > vanillaTop) {
                     Material fill = switch (style) {
@@ -146,7 +152,7 @@ public final class WinterChunkGenerator extends ChunkGenerator {
         n ^= n >>> 33;
         n *= 0xff51afd7ed558ccdl;
         n ^= n >>> 33;
-        return (int) Math.floorMod(n, 10);
+        return (int) Math.floorMod(n, 16);
     }
 
     public static double noise(long seed, int x, int z, double scale) {
