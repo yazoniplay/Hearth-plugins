@@ -26,11 +26,11 @@ function giveCloudWeapon(p: player, id: text):
     else if {_id} is "explosive":
         set {_item} to bow
         set name of {_item} to "{@explosive-name}"
-        set lore of {_item} to "&7Arrows explode on impact." and "&7Explosions do not break blocks." and "" and "&cAbility: &fExplosive arrows" and "&cCooldown: &f1.2 seconds" and "" and "&8CloudSMP Custom Weapon"
+        set lore of {_item} to "&7Arrows explode on impact." and "&7Explosion breaks nearby blocks." and "" and "&cAbility: &fBlock-breaking explosions" and "&cCooldown: &f1.2 seconds" and "" and "&8CloudSMP Custom Weapon"
     else if {_id} is "stunaxe":
-        set {_item} to netherite axe
+        set {_item} to mace
         set name of {_item} to "{@stunaxe-name}"
-        set lore of {_item} to "&7Strike an enemy to root" and "&7them in place briefly." and "" and "&6Ability: &f2-second stun" and "&6Cooldown: &f6 seconds" and "" and "&8CloudSMP Custom Weapon"
+        set lore of {_item} to "&7A crushing mace that roots" and "&7your target in place briefly." and "" and "&6Ability: &f2-second stun" and "&6Cooldown: &f6 seconds" and "" and "&8CloudSMP Custom Weapon"
     else if {_id} is "graviton":
         set {_item} to trident
         set name of {_item} to "{@graviton-name}"
@@ -56,7 +56,7 @@ function isCloudWeapon(i: item, id: text) :: boolean:
             if uncolored name of {_i} is "Cataclysm Bow":
                 return true
     else if {_id} is "stunaxe":
-        if type of {_i} is netherite axe:
+        if type of {_i} is mace:
             if uncolored name of {_i} is "Titan's Grasp":
                 return true
     else if {_id} is "graviton":
@@ -75,8 +75,8 @@ command /weapons:
         set slot 4 of {_gui} to nether star named "&b&lCLOUDSMP ARSENAL" with lore "&7Five custom PvP weapons." and "&7Click a weapon to claim it." and "" and "&8Unique abilities & cooldowns"
         set slot 10 of {_gui} to mace named "{@skybreaker-name}" with lore "&7Launch & slam your target." and "" and "&aClick to claim"
         set slot 12 of {_gui} to crossbow named "{@rapidfire-name}" with lore "&7Five seconds of rapid fire." and "" and "&aClick to claim"
-        set slot 14 of {_gui} to bow named "{@explosive-name}" with lore "&7Explosive arrows, no block damage." and "" and "&aClick to claim"
-        set slot 16 of {_gui} to netherite axe named "{@stunaxe-name}" with lore "&7Briefly stun your opponent." and "" and "&aClick to claim"
+        set slot 14 of {_gui} to bow named "{@explosive-name}" with lore "&7Explosive arrows that break blocks." and "" and "&aClick to claim"
+        set slot 16 of {_gui} to mace named "{@stunaxe-name}" with lore "&7A crushing mace that briefly stuns." and "" and "&aClick to claim"
         set slot 22 of {_gui} to trident named "{@graviton-name}" with lore "&7Pull enemies towards you." and "" and "&aClick to claim"
         open {_gui} to player
 
@@ -131,11 +131,12 @@ on damage of player:
                 stop
         set {cloudsmp::cooldown::skybreaker::%uuid of attacker%} to now
         set {_victim} to victim
-        set velocity of {_victim} to vector(0, 1.7, 0)
+        set velocity of {_victim} to vector(0, 2.0, 0)
         play sound "entity.wind_charge.wind_burst" at {_victim}
-        wait 18 ticks
+        wait 14 ticks
         if {_victim} is online:
-            set velocity of {_victim} to vector(0, -2.8, 0)
+            set velocity of {_victim} to vector(0, -3.2, 0)
+            play sound "entity.generic.explode" at {_victim}
 
 # Titan's Grasp: root the target briefly.
 on damage of player:
@@ -173,6 +174,7 @@ on projectile hit:
         delete {cloudsmp::projectile-owner::%uuid of projectile%}
         set {_at} to location of projectile
         play sound "entity.generic.explode" at {_at}
+        create an explosion of force 2 at {_at}
         loop all living entities in radius 3 around {_at}:
             if uuid of loop-entity is not {_owner}:
                 damage loop-entity by 6
