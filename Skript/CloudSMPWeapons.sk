@@ -14,23 +14,23 @@ function giveCloudWeapon(p: player, id: text):
     if {_id} is "skybreaker":
         set {_item} to mace
         set name of {_item} to "{@skybreaker-name}"
-        set lore of {_item} to "&7Launch an enemy into the sky.", "&7Then slam them into the ground.", "", "&bAbility: &fLaunch & Slam", "&bCooldown: &f8 seconds", "", "&8CloudSMP Custom Weapon"
+        set lore of {_item} to "&7Launch an enemy into the sky." and "&7Then slam them into the ground." and "" and "&bAbility: &fLaunch & Slam" and "&bCooldown: &f8 seconds" and "" and "&8CloudSMP Custom Weapon"
     else if {_id} is "rapidfire":
         set {_item} to crossbow
         set name of {_item} to "{@rapidfire-name}"
-        set lore of {_item} to "&7Unleash a storm of arrows", "&7for five seconds.", "", "&eAbility: &f5-second rapid fire", "&eCooldown: &f18 seconds", "", "&8CloudSMP Custom Weapon"
+        set lore of {_item} to "&7Unleash a storm of arrows" and "&7for five seconds." and "" and "&eAbility: &f5-second rapid fire" and "&eCooldown: &f18 seconds" and "" and "&8CloudSMP Custom Weapon"
     else if {_id} is "explosive":
         set {_item} to bow
         set name of {_item} to "{@explosive-name}"
-        set lore of {_item} to "&7Arrows explode on impact.", "&7Explosions do not break blocks.", "", "&cAbility: &fExplosive arrows", "&cCooldown: &f1.2 seconds", "", "&8CloudSMP Custom Weapon"
+        set lore of {_item} to "&7Arrows explode on impact." and "&7Explosions do not break blocks." and "" and "&cAbility: &fExplosive arrows" and "&cCooldown: &f1.2 seconds" and "" and "&8CloudSMP Custom Weapon"
     else if {_id} is "stunaxe":
         set {_item} to netherite axe
         set name of {_item} to "{@stunaxe-name}"
-        set lore of {_item} to "&7Strike an enemy to root", "&7them in place briefly.", "", "&6Ability: &f2-second stun", "&6Cooldown: &f6 seconds", "", "&8CloudSMP Custom Weapon"
+        set lore of {_item} to "&7Strike an enemy to root" and "&7them in place briefly." and "" and "&6Ability: &f2-second stun" and "&6Cooldown: &f6 seconds" and "" and "&8CloudSMP Custom Weapon"
     else if {_id} is "graviton":
         set {_item} to trident
         set name of {_item} to "{@graviton-name}"
-        set lore of {_item} to "&7Throw this trident at an enemy", "&7to pull them towards you.", "", "&dAbility: &fGravitational pull", "&dCooldown: &f7 seconds", "", "&8CloudSMP Custom Weapon"
+        set lore of {_item} to "&7Throw this trident at an enemy" and "&7to pull them towards you." and "" and "&dAbility: &fGravitational pull" and "&dCooldown: &f7 seconds" and "" and "&8CloudSMP Custom Weapon"
     else:
         stop
     enchant {_item} with unbreaking 1
@@ -40,16 +40,21 @@ function isCloudWeapon(i: item, id: text) :: boolean:
     if {_i} is air:
         return false
     if lore of {_i} contains "&8CloudSMP Custom Weapon":
-        if {_id} is "skybreaker" and name of {_i} is "{@skybreaker-name}":
-            return true
-        if {_id} is "rapidfire" and name of {_i} is "{@rapidfire-name}":
-            return true
-        if {_id} is "explosive" and name of {_i} is "{@explosive-name}":
-            return true
-        if {_id} is "stunaxe" and name of {_i} is "{@stunaxe-name}":
-            return true
-        if {_id} is "graviton" and name of {_i} is "{@graviton-name}":
-            return true
+        if {_id} is "skybreaker":
+            if name of {_i} is "{@skybreaker-name}":
+                return true
+        if {_id} is "rapidfire":
+            if name of {_i} is "{@rapidfire-name}":
+                return true
+        if {_id} is "explosive":
+            if name of {_i} is "{@explosive-name}":
+                return true
+        if {_id} is "stunaxe":
+            if name of {_i} is "{@stunaxe-name}":
+                return true
+        if {_id} is "graviton":
+            if name of {_i} is "{@graviton-name}":
+                return true
     return false
 
 command /weapons:
@@ -59,12 +64,12 @@ command /weapons:
         set {_filler} to gray stained glass pane named " "
         loop 27 times:
             set slot (loop-number - 1) of {_gui} to {_filler}
-        set slot 4 of {_gui} to nether star named "&b&lCLOUDSMP ARSENAL" with lore "&7Five custom PvP weapons.", "&7Click a weapon to claim it.", "", "&8Unique abilities & cooldowns"
-        set slot 10 of {_gui} to mace named "{@skybreaker-name}" with lore "&7Launch & slam your target.", "", "&aClick to claim"
-        set slot 12 of {_gui} to crossbow named "{@rapidfire-name}" with lore "&7Five seconds of rapid fire.", "", "&aClick to claim"
-        set slot 14 of {_gui} to bow named "{@explosive-name}" with lore "&7Explosive arrows, no block damage.", "", "&aClick to claim"
-        set slot 16 of {_gui} to netherite axe named "{@stunaxe-name}" with lore "&7Briefly stun your opponent.", "", "&aClick to claim"
-        set slot 22 of {_gui} to trident named "{@graviton-name}" with lore "&7Pull enemies towards you.", "", "&aClick to claim"
+        set slot 4 of {_gui} to nether star named "&b&lCLOUDSMP ARSENAL" with lore "&7Five custom PvP weapons." and "&7Click a weapon to claim it." and "" and "&8Unique abilities & cooldowns"
+        set slot 10 of {_gui} to mace named "{@skybreaker-name}" with lore "&7Launch & slam your target." and "" and "&aClick to claim"
+        set slot 12 of {_gui} to crossbow named "{@rapidfire-name}" with lore "&7Five seconds of rapid fire." and "" and "&aClick to claim"
+        set slot 14 of {_gui} to bow named "{@explosive-name}" with lore "&7Explosive arrows, no block damage." and "" and "&aClick to claim"
+        set slot 16 of {_gui} to netherite axe named "{@stunaxe-name}" with lore "&7Briefly stun your opponent." and "" and "&aClick to claim"
+        set slot 22 of {_gui} to trident named "{@graviton-name}" with lore "&7Pull enemies towards you." and "" and "&aClick to claim"
         open {_gui} to player
 
 command /cloudweapon <text>:
@@ -72,15 +77,15 @@ command /cloudweapon <text>:
     permission message: {@prefix}&cOnly operators can use this command.
     trigger:
         set {_id} to lowercase arg-1
-        if {_id} is "mace" or "skybreaker":
+        if {_id} is "mace" or {_id} is "skybreaker":
             giveCloudWeapon(player, "skybreaker")
-        else if {_id} is "crossbow" or "rapidfire":
+        else if {_id} is "crossbow" or {_id} is "rapidfire":
             giveCloudWeapon(player, "rapidfire")
-        else if {_id} is "bow" or "explosive":
+        else if {_id} is "bow" or {_id} is "explosive":
             giveCloudWeapon(player, "explosive")
-        else if {_id} is "axe" or "stunaxe":
+        else if {_id} is "axe" or {_id} is "stunaxe":
             giveCloudWeapon(player, "stunaxe")
-        else if {_id} is "trident" or "graviton":
+        else if {_id} is "trident" or {_id} is "graviton":
             giveCloudWeapon(player, "graviton")
         else:
             send "{@prefix}&cUsage: /cloudweapon <mace|crossbow|bow|axe|trident>" to player
@@ -118,7 +123,6 @@ on damage of player:
         set {_victim} to victim
         set {_victim}'s velocity to vector(0, 1.7, 0)
         play sound "entity.wind_charge.wind_burst" at {_victim}
-        spawn 20 cloud particles at {_victim}
         wait 18 ticks
         if {_victim} is online:
             set {_victim}'s velocity to vector(0, -2.8, 0)
@@ -137,28 +141,45 @@ on damage of player:
         set {_oldSpeed} to walk speed of {_target}
         set walk speed of {_target} to 0
         play sound "block.beacon.deactivate" at {_target}
-        spawn 16 electric spark particles at location 1 block above {_target}
         wait 2 seconds
         if {_target} is online:
-            set walk speed of {_target} to 0.2
+            set walk speed of {_target} to {_oldSpeed}
 
-# Mark explosive arrows at launch, then apply a safe entity-only explosion on impact.
+# Mark custom projectiles at launch so the ability still works if the player swaps items.
 on shoot:
     shooter is a player
     if projectile is an arrow:
         if isCloudWeapon(shooter's tool, "explosive") is true:
             set {cloudsmp::explosive::%uuid of projectile%} to true
+            set {cloudsmp::projectile-owner::%uuid of projectile%} to uuid of shooter
+    if projectile is a trident:
+        if isCloudWeapon(shooter's tool, "graviton") is true:
+            set {cloudsmp::graviton::%uuid of projectile%} to true
+            set {cloudsmp::projectile-owner::%uuid of projectile%} to uuid of shooter
 
 on projectile hit:
     if {cloudsmp::explosive::%uuid of projectile%} is set:
+        set {_owner} to {cloudsmp::projectile-owner::%uuid of projectile%}
         delete {cloudsmp::explosive::%uuid of projectile%}
+        delete {cloudsmp::projectile-owner::%uuid of projectile%}
         set {_at} to location of projectile
         play sound "entity.generic.explode" at {_at}
-        spawn 1 explosion particle at {_at}
         loop all living entities in radius 3 around {_at}:
-            if loop-entity is not shooter:
+            if uuid of loop-entity is not {_owner}:
                 damage loop-entity by 6
-        # No create-explosion effect: terrain is never destroyed by this ability.
+    if {cloudsmp::graviton::%uuid of projectile%} is set:
+        set {_owner} to {cloudsmp::projectile-owner::%uuid of projectile%}
+        delete {cloudsmp::graviton::%uuid of projectile%}
+        delete {cloudsmp::projectile-owner::%uuid of projectile%}
+        if event-entity is a player:
+            loop all players:
+                if uuid of loop-player is {_owner}:
+                    set {_target} to event-entity
+                    set {_pull} to vector from {_target} to loop-player
+                    multiply {_pull} by 1.6
+                    set y-component of {_pull} to 0.35
+                    set velocity of {_target} to {_pull}
+                    play sound "entity.enderman.teleport" at {_target}
 
 # Rapid-fire crossbow: right-click to fire for five seconds.
 on right click:
@@ -192,4 +213,3 @@ on projectile hit:
             set y-component of {_pull} to 0.35
             set velocity of {_target} to {_pull}
             play sound "entity.enderman.teleport" at {_target}
-            spawn 20 portal particles at {_target}
