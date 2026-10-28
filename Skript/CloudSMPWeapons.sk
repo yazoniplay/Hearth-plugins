@@ -1,0 +1,195 @@
+# CloudSMP Custom Weapons
+# Requires Paper 1.21.11 and Skript 2.10+ (no addon required).
+# Save as plugins/Skript/scripts/CloudSMPWeapons.sk, then run: /sk reload CloudSMPWeapons
+
+options:
+    prefix: &b&lCloudSMP &8» &r
+    skybreaker-name: &b&lSkybreaker
+    rapidfire-name: &e&lTempest Repeater
+    explosive-name: &c&lCataclysm Bow
+    stunaxe-name: &6&lTitan's Grasp
+    graviton-name: &d&lGraviton Trident
+
+function giveCloudWeapon(p: player, id: text):
+    if {_id} is "skybreaker":
+        set {_item} to mace
+        set name of {_item} to "{@skybreaker-name}"
+        set lore of {_item} to "&7Launch an enemy into the sky.", "&7Then slam them into the ground.", "", "&bAbility: &fLaunch & Slam", "&bCooldown: &f8 seconds", "", "&8CloudSMP Custom Weapon"
+    else if {_id} is "rapidfire":
+        set {_item} to crossbow
+        set name of {_item} to "{@rapidfire-name}"
+        set lore of {_item} to "&7Unleash a storm of arrows", "&7for five seconds.", "", "&eAbility: &f5-second rapid fire", "&eCooldown: &f18 seconds", "", "&8CloudSMP Custom Weapon"
+    else if {_id} is "explosive":
+        set {_item} to bow
+        set name of {_item} to "{@explosive-name}"
+        set lore of {_item} to "&7Arrows explode on impact.", "&7Explosions do not break blocks.", "", "&cAbility: &fExplosive arrows", "&cCooldown: &f1.2 seconds", "", "&8CloudSMP Custom Weapon"
+    else if {_id} is "stunaxe":
+        set {_item} to netherite axe
+        set name of {_item} to "{@stunaxe-name}"
+        set lore of {_item} to "&7Strike an enemy to root", "&7them in place briefly.", "", "&6Ability: &f2-second stun", "&6Cooldown: &f6 seconds", "", "&8CloudSMP Custom Weapon"
+    else if {_id} is "graviton":
+        set {_item} to trident
+        set name of {_item} to "{@graviton-name}"
+        set lore of {_item} to "&7Throw this trident at an enemy", "&7to pull them towards you.", "", "&dAbility: &fGravitational pull", "&dCooldown: &f7 seconds", "", "&8CloudSMP Custom Weapon"
+    else:
+        stop
+    enchant {_item} with unbreaking 1
+    give {_item} to {_p}
+
+function isCloudWeapon(i: item, id: text) :: boolean:
+    if {_i} is air:
+        return false
+    if lore of {_i} contains "&8CloudSMP Custom Weapon":
+        if {_id} is "skybreaker" and name of {_i} is "{@skybreaker-name}":
+            return true
+        if {_id} is "rapidfire" and name of {_i} is "{@rapidfire-name}":
+            return true
+        if {_id} is "explosive" and name of {_i} is "{@explosive-name}":
+            return true
+        if {_id} is "stunaxe" and name of {_i} is "{@stunaxe-name}":
+            return true
+        if {_id} is "graviton" and name of {_i} is "{@graviton-name}":
+            return true
+    return false
+
+command /weapons:
+    aliases: /weaponvault
+    trigger:
+        set {_gui} to a new chest inventory with 3 rows named "&8✦ &bCloudSMP &7| &fWeapon Vault"
+        set {_filler} to gray stained glass pane named " "
+        loop 27 times:
+            set slot (loop-number - 1) of {_gui} to {_filler}
+        set slot 4 of {_gui} to nether star named "&b&lCLOUDSMP ARSENAL" with lore "&7Five custom PvP weapons.", "&7Click a weapon to claim it.", "", "&8Unique abilities & cooldowns"
+        set slot 10 of {_gui} to mace named "{@skybreaker-name}" with lore "&7Launch & slam your target.", "", "&aClick to claim"
+        set slot 12 of {_gui} to crossbow named "{@rapidfire-name}" with lore "&7Five seconds of rapid fire.", "", "&aClick to claim"
+        set slot 14 of {_gui} to bow named "{@explosive-name}" with lore "&7Explosive arrows, no block damage.", "", "&aClick to claim"
+        set slot 16 of {_gui} to netherite axe named "{@stunaxe-name}" with lore "&7Briefly stun your opponent.", "", "&aClick to claim"
+        set slot 22 of {_gui} to trident named "{@graviton-name}" with lore "&7Pull enemies towards you.", "", "&aClick to claim"
+        open {_gui} to player
+
+command /cloudweapon <text>:
+    permission: op
+    permission message: {@prefix}&cOnly operators can use this command.
+    trigger:
+        set {_id} to lowercase arg-1
+        if {_id} is "mace" or "skybreaker":
+            giveCloudWeapon(player, "skybreaker")
+        else if {_id} is "crossbow" or "rapidfire":
+            giveCloudWeapon(player, "rapidfire")
+        else if {_id} is "bow" or "explosive":
+            giveCloudWeapon(player, "explosive")
+        else if {_id} is "axe" or "stunaxe":
+            giveCloudWeapon(player, "stunaxe")
+        else if {_id} is "trident" or "graviton":
+            giveCloudWeapon(player, "graviton")
+        else:
+            send "{@prefix}&cUsage: /cloudweapon <mace|crossbow|bow|axe|trident>" to player
+            stop
+        send "{@prefix}&aCustom weapon given." to player
+
+on inventory click:
+    if name of event-inventory is "&8✦ &bCloudSMP &7| &fWeapon Vault":
+        cancel event
+        if clicked slot is 10:
+            giveCloudWeapon(player, "skybreaker")
+        else if clicked slot is 12:
+            giveCloudWeapon(player, "rapidfire")
+        else if clicked slot is 14:
+            giveCloudWeapon(player, "explosive")
+        else if clicked slot is 16:
+            giveCloudWeapon(player, "stunaxe")
+        else if clicked slot is 22:
+            giveCloudWeapon(player, "graviton")
+        else:
+            stop
+        play sound "entity.item.pickup" with volume 0.8 and pitch 1.3 to player
+        send "{@prefix}&fWeapon claimed." to player
+        close player's inventory
+
+# Skybreaker: launch, then drive the target downward. The forced downward velocity
+# creates the fall; normal Minecraft fall damage is retained.
+on damage of player:
+    attacker is a player
+    if isCloudWeapon(attacker's tool, "skybreaker") is true:
+        if {cloudsmp::cooldown::skybreaker::%uuid of attacker%} is set:
+            if difference between now and {cloudsmp::cooldown::skybreaker::%uuid of attacker%} is less than 8 seconds:
+                stop
+        set {cloudsmp::cooldown::skybreaker::%uuid of attacker%} to now
+        set {_victim} to victim
+        set {_victim}'s velocity to vector(0, 1.7, 0)
+        play sound "entity.wind_charge.wind_burst" at {_victim}
+        spawn 20 cloud particles at {_victim}
+        wait 18 ticks
+        if {_victim} is online:
+            set {_victim}'s velocity to vector(0, -2.8, 0)
+
+# Titan's Grasp: slow and disable jumping for two seconds.
+on damage of player:
+    attacker is a player
+    if isCloudWeapon(attacker's tool, "stunaxe") is true:
+        if {cloudsmp::cooldown::stunaxe::%uuid of attacker%} is set:
+            if difference between now and {cloudsmp::cooldown::stunaxe::%uuid of attacker%} is less than 6 seconds:
+                stop
+        set {cloudsmp::cooldown::stunaxe::%uuid of attacker%} to now
+        apply slowness 10 to victim for 2 seconds
+        apply jump boost 250 to victim for 2 seconds
+        set {_target} to victim
+        set {_oldSpeed} to walk speed of {_target}
+        set walk speed of {_target} to 0
+        play sound "block.beacon.deactivate" at {_target}
+        spawn 16 electric spark particles at location 1 block above {_target}
+        wait 2 seconds
+        if {_target} is online:
+            set walk speed of {_target} to 0.2
+
+# Mark explosive arrows at launch, then apply a safe entity-only explosion on impact.
+on shoot:
+    shooter is a player
+    if projectile is an arrow:
+        if isCloudWeapon(shooter's tool, "explosive") is true:
+            set {cloudsmp::explosive::%uuid of projectile%} to true
+
+on projectile hit:
+    if {cloudsmp::explosive::%uuid of projectile%} is set:
+        delete {cloudsmp::explosive::%uuid of projectile%}
+        set {_at} to location of projectile
+        play sound "entity.generic.explode" at {_at}
+        spawn 1 explosion particle at {_at}
+        loop all living entities in radius 3 around {_at}:
+            if loop-entity is not shooter:
+                damage loop-entity by 6
+        # No create-explosion effect: terrain is never destroyed by this ability.
+
+# Rapid-fire crossbow: right-click to fire for five seconds.
+on right click:
+    if isCloudWeapon(player's tool, "rapidfire") is true:
+        cancel event
+        if {cloudsmp::cooldown::rapidfire::%uuid of player%} is set:
+            if difference between now and {cloudsmp::cooldown::rapidfire::%uuid of player%} is less than 18 seconds:
+                send action bar "&cRapid Fire is recharging." to player
+                stop
+        set {cloudsmp::cooldown::rapidfire::%uuid of player%} to now
+        set {cloudsmp::rapidfire::%uuid of player%} to true
+        send action bar "&e&lTEMPEST REPEATER &7» &fRapid fire activated!" to player
+        loop 25 times:
+            if player is offline:
+                stop
+            if {cloudsmp::rapidfire::%uuid of player%} is not set:
+                stop
+            shoot an arrow from player at speed 3
+            wait 4 ticks
+        delete {cloudsmp::rapidfire::%uuid of player%}
+
+# Graviton: throw the custom trident at a player to yank them towards the thrower.
+on projectile hit:
+    projectile is a trident
+    shooter is a player
+    if isCloudWeapon(shooter's tool, "graviton") is true:
+        if hit entity is a player:
+            set {_target} to hit entity
+            set {_pull} to vector from {_target} to shooter
+            multiply {_pull} by 1.6
+            set y-component of {_pull} to 0.35
+            set velocity of {_target} to {_pull}
+            play sound "entity.enderman.teleport" at {_target}
+            spawn 20 portal particles at {_target}
