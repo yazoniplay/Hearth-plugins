@@ -73,9 +73,10 @@ command /weapons:
         open {_gui} to player
 
 command /cloudweapon <text>:
-    permission: op
-    permission message: {@prefix}&cOnly operators can use this command.
     trigger:
+        if player is not op:
+            send "{@prefix}&cOnly operators can use this command." to player
+            stop
         set {_id} to lowercase arg-1
         if {_id} is "mace" or {_id} is "skybreaker":
             giveCloudWeapon(player, "skybreaker")
