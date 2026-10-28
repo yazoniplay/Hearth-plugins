@@ -164,16 +164,19 @@ public final class CloudSMPWeapons extends JavaPlugin implements Listener, Comma
             if (previous != null) previous.cancel();
             player.sendMessage("§eTempest Repeater §8» §fRapid fire engaged!");
             final int[] ticks = {0};
-            BukkitTask task = Bukkit.getScheduler().runTaskTimer(this, () -> {
+            final BukkitTask[] repeating = new BukkitTask[1];
+            repeating[0] = Bukkit.getScheduler().runTaskTimer(this, () -> {
                 if (!player.isOnline() || ticks[0] >= 50 || getWeapon(player.getInventory().getItemInMainHand()) != Weapon.RAPIDFIRE) {
-                    rapidFireTasks.remove(player.getUniqueId()); return;
+                    rapidFireTasks.remove(player.getUniqueId());
+                    if (repeating[0] != null) repeating[0].cancel();
+                    return;
                 }
                 Arrow arrow = player.launchProjectile(Arrow.class);
                 arrow.setVelocity(player.getEyeLocation().getDirection().multiply(3.0));
                 arrow.setPickupStatus(AbstractArrow.PickupStatus.DISALLOWED);
                 ticks[0] += 2;
             }, 0L, 2L);
-            rapidFireTasks.put(player.getUniqueId(), task);
+            rapidFireTasks.put(player.getUniqueId(), repeating[0]);
         }
     }
 
@@ -183,6 +186,15 @@ public final class CloudSMPWeapons extends JavaPlugin implements Listener, Comma
         if (weapon == Weapon.DEMOLITION && event.getProjectile() instanceof Arrow arrow) {
             arrow.getPersistentDataContainer().set(explosiveArrowKey, PersistentDataType.BYTE, (byte)1);
             arrow.setCritical(true);
+        }
+    }
+
+    @EventHandler public void onProjectileLaunch(ProjectileLaunchEvent event) {
+        if (!(event.getEntity() instanceof Trident trident) || !(trident.getShooter() instanceof Player player)) return;
+        Weapon held = getWeapon(player.getInventory().getItemInMainHand());
+        if (held != Weapon.GRAVITON) held = getWeapon(player.getInventory().getItemInOffHand());
+        if (held == Weapon.GRAVITON) {
+            trident.getPersistentDataContainer().set(weaponKey, PersistentDataType.STRING, Weapon.GRAVITON.id);
         }
     }
 
@@ -204,8 +216,9 @@ public final class CloudSMPWeapons extends JavaPlugin implements Listener, Comma
             }
             projectile.remove(); return;
         }
-        if (projectile instanceof Trident trident && trident.getShooter() instanceof Player shooter
-                && getWeapon(shooter.getInventory().getItemInMainHand()) == Weapon.GRAVITON
+        if (projectile instanceof Trident trident && trident.getPersistentDataContainer().has(weaponKey, PersistentDataType.STRING)
+                && Weapon.GRAVITON.id.equals(trident.getPersistentDataContainer().get(weaponKey, PersistentDataType.STRING))
+                && trident.getShooter() instanceof Player shooter
                 && event.getHitEntity() instanceof LivingEntity target && target != shooter) {
             Vector pull = shooter.getLocation().toVector().subtract(target.getLocation().toVector());
             double distance = pull.length();
